@@ -666,6 +666,16 @@ function updateOverall() {
   } catch(e) {}
 }
 
+// Auto-refresh when returning to dashboard
+window.addEventListener("focus", () => {
+  loadGmat(); loadAicpa(); loadBucket(); updateRoadmapMeta(); updateOverall();
+});
+document.addEventListener("visibilitychange", () => {
+  if (document.visibilityState === "visible") {
+    loadGmat(); loadAicpa(); loadBucket(); updateRoadmapMeta(); updateOverall();
+  }
+});
+
 // Init
 buildGantt();
 updateRoadmapMeta();
