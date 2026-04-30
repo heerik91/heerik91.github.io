@@ -20,312 +20,271 @@
   --text3: #4A4840;
   --accent: #C8A96E;
   --accent2: #E8D5B0;
-
   --gmat: #4A7FA5;
   --aicpa: #C4873A;
   --essay: #7A6AA0;
   --todo: #5A8A6A;
   --roadmap: #A06060;
   --bucket: #8A7060;
+  --col-w: 100px;
+  --row-h: 52px;
+  --label-w: 64px;
+  --gantt-header-h: 40px;
 }
 
-html, body {
-  min-height: 100vh;
-  background: var(--bg);
-  color: var(--text);
-  font-family: 'Noto Serif KR', serif;
-}
+html, body { min-height: 100vh; background: var(--bg); color: var(--text); font-family: 'Noto Serif KR', serif; }
 
-/* Grain overlay */
 body::after {
-  content: '';
-  position: fixed; inset: 0;
+  content: ''; position: fixed; inset: 0;
   background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
   pointer-events: none; z-index: 100; opacity: 0.4;
 }
 
 /* ── HEADER ── */
 .header {
-  padding: 36px 28px 28px;
+  padding: 28px 24px 22px;
   border-bottom: 1px solid var(--border);
-  display: flex;
-  align-items: flex-end;
-  justify-content: space-between;
-  gap: 16px;
+  display: flex; align-items: flex-end; justify-content: space-between; gap: 16px;
 }
+.header-left .greeting { font-family: 'DM Mono', monospace; font-size: 8px; letter-spacing: 3px; color: var(--text3); text-transform: uppercase; margin-bottom: 6px; }
+.header-left h1 { font-family: 'Cormorant Garamond', serif; font-size: 28px; font-weight: 300; color: var(--accent2); font-style: italic; line-height: 1; }
+.header-right { text-align: right; }
+.today-date { font-family: 'DM Mono', monospace; font-size: 10px; color: var(--text3); letter-spacing: 1px; margin-bottom: 5px; }
+.overall-pct { font-family: 'DM Mono', monospace; font-size: 20px; color: var(--accent); line-height: 1; }
+.overall-label { font-family: 'DM Mono', monospace; font-size: 8px; color: var(--text3); letter-spacing: 1px; text-transform: uppercase; }
 
-.header-left .greeting {
-  font-family: 'DM Mono', monospace;
-  font-size: 9px;
-  letter-spacing: 3px;
-  color: var(--text3);
-  text-transform: uppercase;
-  margin-bottom: 8px;
-}
+/* ── LAYOUT ── */
+.main { padding: 20px 20px 48px; max-width: 100%; }
 
-.header-left h1 {
-  font-family: 'Cormorant Garamond', serif;
-  font-size: 32px;
-  font-weight: 300;
-  color: var(--accent2);
-  letter-spacing: 0.5px;
-  line-height: 1;
-  font-style: italic;
-}
+.section-divider { display: flex; align-items: center; gap: 12px; margin-bottom: 14px; }
+.divider-line { flex: 1; height: 1px; background: var(--border); }
+.divider-label { font-family: 'DM Mono', monospace; font-size: 8px; letter-spacing: 2.5px; color: var(--text3); text-transform: uppercase; white-space: nowrap; }
 
-.header-right {
-  text-align: right;
-}
-
-.today-date {
-  font-family: 'DM Mono', monospace;
-  font-size: 11px;
-  color: var(--text3);
-  letter-spacing: 1px;
-  margin-bottom: 6px;
-}
-
-.overall-prog {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  justify-content: flex-end;
-}
-
-.overall-pct {
-  font-family: 'DM Mono', monospace;
-  font-size: 18px;
-  color: var(--accent);
-  line-height: 1;
-}
-
-.overall-label {
-  font-family: 'DM Mono', monospace;
-  font-size: 8px;
-  color: var(--text3);
-  letter-spacing: 1px;
-  text-transform: uppercase;
-}
-
-/* ── MAIN LAYOUT ── */
-.main { padding: 24px 24px 48px; max-width: 680px; margin: 0 auto; }
-
-/* ── TOP ROW: Roadmap + Bucket ── */
-.top-row {
+/* ── TOP SECTION: Roadmap (left big) + Bucket (right small) ── */
+.top-section {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: 1fr 200px;
   gap: 14px;
   margin-bottom: 14px;
 }
 
-/* ── BOTTOM GRID: 4 trackers ── */
-.tracker-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 14px;
+@media (max-width: 600px) {
+  .top-section { grid-template-columns: 1fr; }
 }
 
-/* ── BASE CARD ── */
-.card {
+/* ── ROADMAP CARD (with embedded gantt) ── */
+.roadmap-card {
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: 3px;
-  padding: 18px 18px 16px;
-  cursor: pointer;
-  text-decoration: none;
-  color: inherit;
-  display: block;
-  transition: border-color 0.2s, background 0.2s;
-  position: relative;
+  border-left: 2px solid var(--roadmap);
   overflow: hidden;
+}
+
+.roadmap-card-header {
+  padding: 14px 16px 10px;
+  display: flex; align-items: center; justify-content: space-between;
+  border-bottom: 1px solid var(--border);
+}
+
+.roadmap-card-title {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 18px; font-weight: 400; color: var(--accent2);
+}
+
+.roadmap-card-meta {
+  display: flex; align-items: center; gap: 12px;
+}
+
+.roadmap-next {
+  font-family: 'DM Mono', monospace;
+  font-size: 9px; color: var(--text2); letter-spacing: 0.5px;
+}
+
+.roadmap-next strong { color: var(--accent); }
+
+.roadmap-pct {
+  font-family: 'DM Mono', monospace;
+  font-size: 10px; color: var(--text3);
+}
+
+.roadmap-link {
+  font-family: 'DM Mono', monospace;
+  font-size: 9px; color: var(--text3);
+  text-decoration: none; padding: 3px 8px;
+  border: 1px solid var(--border2); border-radius: 2px;
   -webkit-tap-highlight-color: transparent;
 }
 
-.card:active { background: var(--surface2); }
-
-/* Accent left border */
-.card::before {
-  content: '';
-  position: absolute;
-  left: 0; top: 0; bottom: 0;
-  width: 2px;
-}
-
-.card-roadmap::before  { background: var(--roadmap); }
-.card-bucket::before   { background: var(--bucket); }
-.card-gmat::before     { background: var(--gmat); }
-.card-aicpa::before    { background: var(--aicpa); }
-.card-essay::before    { background: var(--essay); }
-.card-todo::before     { background: var(--todo); }
-.card-soon::before     { background: var(--border2); }
-
-.card-tag {
-  font-family: 'DM Mono', monospace;
-  font-size: 8px;
-  letter-spacing: 2px;
-  text-transform: uppercase;
-  margin-bottom: 8px;
-  opacity: 0.7;
-}
-
-.card-roadmap .card-tag  { color: var(--roadmap); }
-.card-bucket .card-tag   { color: var(--bucket); }
-.card-gmat .card-tag     { color: var(--gmat); }
-.card-aicpa .card-tag    { color: var(--aicpa); }
-.card-essay .card-tag    { color: var(--essay); }
-.card-todo .card-tag     { color: var(--todo); }
-.card-soon .card-tag     { color: var(--text3); }
-
-.card-title {
-  font-family: 'Cormorant Garamond', serif;
-  font-size: 20px;
-  font-weight: 400;
-  color: var(--accent2);
-  line-height: 1.2;
-  margin-bottom: 12px;
-}
-
-.card-soon .card-title { color: var(--text3); font-style: italic; }
-
-/* Stats row inside card */
-.card-stats {
-  display: flex;
-  gap: 14px;
-  flex-wrap: wrap;
-}
-
-.cstat {
+/* ── GANTT INSIDE ROADMAP CARD ── */
+.gantt-wrap {
   display: flex;
   flex-direction: column;
-  gap: 2px;
-}
-
-.cstat-num {
-  font-family: 'DM Mono', monospace;
-  font-size: 16px;
-  color: var(--accent);
-  line-height: 1;
-}
-
-.cstat-label {
-  font-family: 'DM Mono', monospace;
-  font-size: 8px;
-  color: var(--text3);
-  letter-spacing: 0.5px;
-  text-transform: uppercase;
-}
-
-/* Progress bar in card */
-.card-prog-track {
-  height: 2px;
-  background: var(--border2);
-  border-radius: 99px;
-  margin-top: 12px;
   overflow: hidden;
 }
 
-.card-prog-fill {
-  height: 100%;
-  border-radius: 99px;
-  transition: width 0.4s ease;
-}
-
-/* Next milestone */
-.card-milestone {
-  font-size: 12px;
-  color: var(--text2);
-  line-height: 1.5;
-  margin-bottom: 10px;
-}
-
-.card-milestone strong {
-  color: var(--accent);
-  font-weight: 500;
-}
-
-/* Checklist preview */
-.card-checks {
+.gantt-header-row {
   display: flex;
-  flex-direction: column;
-  gap: 5px;
-  margin-top: 4px;
-}
-
-.card-check-row {
-  display: flex;
-  align-items: center;
-  gap: 7px;
-  font-size: 11px;
-  color: var(--text2);
-}
-
-.check-dot {
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
   flex-shrink: 0;
-  border: 1px solid var(--border2);
+  border-bottom: 1px solid var(--border);
 }
 
-.check-dot.done { background: var(--accent); border-color: var(--accent); }
-
-/* Coming soon */
-.soon-body {
-  font-family: 'DM Mono', monospace;
-  font-size: 9px;
-  color: var(--text3);
-  letter-spacing: 1px;
-  line-height: 1.8;
-  padding: 8px 0 4px;
+.gantt-corner {
+  width: var(--label-w); min-width: var(--label-w);
+  height: var(--gantt-header-h);
+  border-right: 1px solid var(--border); flex-shrink: 0;
 }
 
-/* Arrow */
-.card-arrow {
-  position: absolute;
-  bottom: 14px;
-  right: 16px;
-  font-family: 'DM Mono', monospace;
-  font-size: 10px;
-  color: var(--text3);
-  opacity: 0;
-  transition: opacity 0.2s;
+.gantt-mhs { overflow: hidden; flex: 1; }
+.gantt-mhi { display: flex; height: var(--gantt-header-h); }
+
+.gantt-month-cell {
+  min-width: var(--col-w); width: var(--col-w);
+  border-right: 1px solid var(--border);
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center; flex-shrink: 0;
 }
 
-.card:hover .card-arrow { opacity: 1; }
+.gantt-month-name { font-family: 'DM Mono', monospace; font-size: 9px; color: var(--text2); letter-spacing: 1.5px; text-transform: uppercase; }
+.gantt-month-sub  { font-family: 'DM Mono', monospace; font-size: 7px; color: var(--text3); margin-top: 1px; }
 
-/* Streak badge */
-.streak-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  background: var(--surface2);
-  border: 1px solid var(--border2);
-  border-radius: 2px;
-  padding: 3px 8px;
-  font-family: 'DM Mono', monospace;
-  font-size: 10px;
-  color: var(--accent);
-  margin-top: 10px;
+.gantt-body-row { display: flex; }
+.gantt-label-col {
+  width: var(--label-w); min-width: var(--label-w);
+  border-right: 1px solid var(--border);
+  background: var(--surface); z-index: 5; flex-shrink: 0;
 }
 
-/* Divider label */
-.section-divider {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  margin-bottom: 14px;
-  margin-top: 4px;
+.gantt-label-cell {
+  height: var(--row-h); border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; padding: 0 8px; gap: 6px;
 }
 
-.divider-line { flex: 1; height: 1px; background: var(--border); }
-.divider-label {
-  font-family: 'DM Mono', monospace;
-  font-size: 8px;
-  letter-spacing: 2.5px;
-  color: var(--text3);
-  text-transform: uppercase;
-  white-space: nowrap;
+.gantt-label-dot { width: 5px; height: 5px; border-radius: 50%; flex-shrink: 0; }
+.gantt-label-text { font-family: 'DM Mono', monospace; font-size: 8px; letter-spacing: 0.5px; }
+
+.gantt-cs { flex: 1; overflow-x: auto; overflow-y: hidden; -webkit-overflow-scrolling: touch; }
+.gantt-cs::-webkit-scrollbar { height: 3px; }
+.gantt-cs::-webkit-scrollbar-track { background: var(--bg); }
+.gantt-cs::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 2px; }
+
+.gantt-cg { display: flex; flex-direction: column; position: relative; }
+.gantt-crow { display: flex; height: var(--row-h); border-bottom: 1px solid var(--border); position: relative; }
+.gantt-ccell { min-width: var(--col-w); width: var(--col-w); height: var(--row-h); border-right: 1px solid var(--border); flex-shrink: 0; }
+
+.gantt-today-line { position: absolute; top: 0; bottom: 0; width: 1.5px; background: var(--accent); opacity: 0.35; z-index: 3; pointer-events: none; }
+.gantt-today-lbl { position: absolute; top: -14px; transform: translateX(-50%); font-family: 'DM Mono', monospace; font-size: 6px; color: var(--accent); opacity: 0.55; white-space: nowrap; z-index: 4; }
+
+.gantt-chip {
+  position: absolute; top: 50%; transform: translateY(-50%);
+  border-radius: 3px; padding: 0 10px 0 6px;
+  cursor: pointer; z-index: 2;
+  display: flex; align-items: center; gap: 4px;
+  -webkit-tap-highlight-color: transparent;
+  transition: opacity 0.15s; overflow: hidden; height: 20px;
 }
+.gantt-chip:active { opacity: 0.7; }
+.gantt-chip.done { opacity: 0.22; }
+.gantt-chip.done .gantt-chip-title { text-decoration: line-through; }
+
+.gantt-end-mark {
+  position: absolute; right: -4px; top: 50%;
+  transform: translateY(-50%) rotate(45deg);
+  width: 6px; height: 6px; border-radius: 1px; opacity: 0.9;
+}
+
+.gantt-chip-check { width: 9px; height: 9px; border-radius: 50%; border: 1px solid currentColor; opacity: 0.55; flex-shrink: 0; display: flex; align-items: center; justify-content: center; }
+.gantt-chip-check.ticked { opacity: 1; background: currentColor; }
+.gantt-chip-check.ticked::after { content: ''; display: block; width: 2px; height: 5px; border: 1.5px solid #0A0A09; border-top: none; border-left: none; transform: rotate(45deg) translate(-0.5px, -1px); }
+
+.gantt-chip-title { font-family: 'DM Mono', monospace; font-size: 8px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; line-height: 1; }
+
+/* ── POPUP ── */
+.overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.65); z-index: 200; align-items: flex-end; justify-content: center; padding: 0 0 32px; }
+.overlay.open { display: flex; }
+.popup { background: #1A1A18; border: 1px solid var(--border2); border-radius: 12px; padding: 22px 20px 18px; width: calc(100% - 32px); max-width: 400px; position: relative; }
+.popup-close { position: absolute; top: 12px; right: 14px; width: 26px; height: 26px; border-radius: 50%; background: var(--border2); border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; color: var(--text2); font-size: 15px; -webkit-tap-highlight-color: transparent; }
+.popup-type { font-family: 'DM Mono', monospace; font-size: 8px; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 7px; }
+.popup-title { font-size: 16px; font-weight: 500; color: var(--accent2); margin-bottom: 5px; line-height: 1.4; padding-right: 28px; }
+.popup-dates { font-family: 'DM Mono', monospace; font-size: 9px; color: var(--text3); margin-bottom: 10px; }
+.popup-note { font-size: 12px; color: var(--text2); line-height: 1.7; margin-bottom: 16px; font-style: italic; min-height: 18px; }
+.popup-btn { width: 100%; padding: 12px; border-radius: 8px; border: 1px solid var(--border2); background: transparent; font-family: 'DM Mono', monospace; font-size: 10px; letter-spacing: 1px; cursor: pointer; -webkit-tap-highlight-color: transparent; }
+.popup-btn.mark-done { color: var(--accent2); border-color: var(--accent); opacity: 0.7; }
+.popup-btn.mark-done:active { opacity: 1; }
+.popup-btn.mark-undone { color: var(--text3); }
+
+/* ── BUCKET CARD ── */
+.bucket-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  border-left: 2px solid var(--bucket);
+  padding: 14px 14px 12px;
+  text-decoration: none; color: inherit; display: flex; flex-direction: column;
+  -webkit-tap-highlight-color: transparent;
+  transition: background 0.15s;
+}
+.bucket-card:active { background: var(--surface2); }
+.bucket-card-tag { font-family: 'DM Mono', monospace; font-size: 8px; letter-spacing: 2px; color: var(--bucket); text-transform: uppercase; margin-bottom: 8px; opacity: 0.8; }
+.bucket-card-title { font-family: 'Cormorant Garamond', serif; font-size: 18px; font-weight: 400; color: var(--accent2); margin-bottom: 12px; }
+.bucket-stats { display: flex; gap: 14px; margin-bottom: 10px; }
+.bstat-num { font-family: 'DM Mono', monospace; font-size: 20px; color: var(--accent); line-height: 1; margin-bottom: 2px; }
+.bstat-label { font-family: 'DM Mono', monospace; font-size: 8px; color: var(--text3); letter-spacing: 0.5px; text-transform: uppercase; }
+.bucket-prog-track { height: 2px; background: var(--border2); border-radius: 99px; overflow: hidden; margin-top: auto; }
+.bucket-prog-fill { height: 100%; border-radius: 99px; background: var(--bucket); transition: width 0.4s; }
+.bucket-card-arrow { font-family: 'DM Mono', monospace; font-size: 9px; color: var(--text3); margin-top: 8px; text-align: right; }
+
+/* ── TRACKER GRID ── */
+.tracker-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px; }
+
+@media (min-width: 700px) {
+  .tracker-grid { grid-template-columns: repeat(4, 1fr); }
+}
+
+.tracker-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  padding: 14px 14px 12px;
+  text-decoration: none; color: inherit; display: block;
+  -webkit-tap-highlight-color: transparent;
+  transition: background 0.15s;
+  position: relative; overflow: hidden;
+}
+.tracker-card:active { background: var(--surface2); }
+.tracker-card::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 2px; }
+.tc-gmat::before   { background: var(--gmat); }
+.tc-aicpa::before  { background: var(--aicpa); }
+.tc-essay::before  { background: var(--essay); }
+.tc-todo::before   { background: var(--todo); }
+
+.tc-tag { font-family: 'DM Mono', monospace; font-size: 8px; letter-spacing: 1.5px; text-transform: uppercase; margin-bottom: 7px; opacity: 0.8; }
+.tc-gmat .tc-tag   { color: var(--gmat); }
+.tc-aicpa .tc-tag  { color: var(--aicpa); }
+.tc-essay .tc-tag  { color: var(--essay); }
+.tc-todo .tc-tag   { color: var(--todo); }
+
+.tc-title { font-family: 'Cormorant Garamond', serif; font-size: 17px; font-weight: 400; color: var(--accent2); line-height: 1.2; margin-bottom: 10px; }
+.tc-soon .tc-title { color: var(--text3); font-style: italic; }
+
+.tc-stats { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 8px; }
+.tcstat-num { font-family: 'DM Mono', monospace; font-size: 16px; color: var(--accent); line-height: 1; margin-bottom: 2px; }
+.tcstat-label { font-family: 'DM Mono', monospace; font-size: 8px; color: var(--text3); letter-spacing: 0.5px; text-transform: uppercase; }
+
+.tc-checks { display: flex; flex-direction: column; gap: 4px; margin-bottom: 8px; }
+.tc-check-row { display: flex; align-items: center; gap: 6px; font-size: 11px; color: var(--text2); }
+.tc-dot { width: 5px; height: 5px; border-radius: 50%; flex-shrink: 0; border: 1px solid var(--border2); }
+.tc-dot.done { background: var(--accent); border-color: var(--accent); }
+
+.streak-badge { display: inline-flex; align-items: center; font-family: 'DM Mono', monospace; font-size: 9px; color: var(--accent); background: var(--surface2); border: 1px solid var(--border2); border-radius: 2px; padding: 2px 7px; }
+
+.tc-prog-track { height: 2px; background: var(--border2); border-radius: 99px; overflow: hidden; margin-top: 8px; }
+.tc-prog-fill { height: 100%; border-radius: 99px; transition: width 0.4s; }
+
+.tc-soon-body { font-family: 'DM Mono', monospace; font-size: 9px; color: var(--text3); letter-spacing: 0.5px; line-height: 1.9; }
+
+.tc-arrow { position: absolute; bottom: 10px; right: 12px; font-family: 'DM Mono', monospace; font-size: 9px; color: var(--text3); opacity: 0; transition: opacity 0.2s; }
+.tracker-card:hover .tc-arrow { opacity: 1; }
 </style>
 </head>
 <body>
@@ -337,55 +296,69 @@ body::after {
   </div>
   <div class="header-right">
     <div class="today-date" id="todayDate"></div>
-    <div class="overall-prog">
-      <div>
-        <div class="overall-pct" id="overallPct">—</div>
-        <div class="overall-label">전체 달성률</div>
-      </div>
-    </div>
+    <div class="overall-pct" id="overallPct">—</div>
+    <div class="overall-label">전체 달성률</div>
   </div>
 </div>
 
 <div class="main">
 
-  <!-- TOP ROW -->
+  <!-- TOP: Roadmap + Bucket -->
   <div class="section-divider">
     <div class="divider-line"></div>
     <div class="divider-label">큰 그림</div>
     <div class="divider-line"></div>
   </div>
 
-  <div class="top-row">
-    <!-- MBA Roadmap -->
-    <a class="card card-roadmap" href="mba_roadmap_v2.html">
-      <div class="card-tag">MBA Roadmap</div>
-      <div class="card-title">로드맵</div>
-      <div class="card-milestone" id="nextMilestone">다음 마일스톤 로딩 중...</div>
-      <div class="card-prog-track">
-        <div class="card-prog-fill" id="roadmapProg" style="background:var(--roadmap);width:0%"></div>
+  <div class="top-section">
+
+    <!-- ROADMAP with embedded gantt -->
+    <div class="roadmap-card">
+      <div class="roadmap-card-header">
+        <div class="roadmap-card-title">MBA 로드맵</div>
+        <div class="roadmap-card-meta">
+          <div class="roadmap-next" id="nextMilestone">—</div>
+          <div class="roadmap-pct" id="roadmapPct">0%</div>
+          <a class="roadmap-link" href="mba_roadmap_v2.html">전체 →</a>
+        </div>
       </div>
-      <div class="card-arrow">→</div>
+      <!-- Embedded Gantt -->
+      <div class="gantt-wrap">
+        <div class="gantt-header-row">
+          <div class="gantt-corner"></div>
+          <div class="gantt-mhs" id="ganttMhs">
+            <div class="gantt-mhi" id="ganttMhi"></div>
+          </div>
+        </div>
+        <div class="gantt-body-row">
+          <div class="gantt-label-col" id="ganttLabelCol"></div>
+          <div class="gantt-cs" id="ganttCs">
+            <div class="gantt-cg" id="ganttCg"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- BUCKET -->
+    <a class="bucket-card" href="bucketlist.html">
+      <div class="bucket-card-tag">Bucket List</div>
+      <div class="bucket-card-title">버킷<br>리스트</div>
+      <div class="bucket-stats">
+        <div>
+          <div class="bstat-num" id="bucketDone">0</div>
+          <div class="bstat-label">완료</div>
+        </div>
+        <div>
+          <div class="bstat-num" id="bucketTotal">0</div>
+          <div class="bstat-label">총</div>
+        </div>
+      </div>
+      <div class="bucket-prog-track">
+        <div class="bucket-prog-fill" id="bucketProg" style="width:0%"></div>
+      </div>
+      <div class="bucket-card-arrow">→</div>
     </a>
 
-    <!-- Bucket List -->
-    <a class="card card-bucket" href="bucketlist.html">
-      <div class="card-tag">Bucket List</div>
-      <div class="card-title">버킷리스트</div>
-      <div class="card-stats">
-        <div class="cstat">
-          <div class="cstat-num" id="bucketDone">0</div>
-          <div class="cstat-label">완료</div>
-        </div>
-        <div class="cstat">
-          <div class="cstat-num" id="bucketTotal">0</div>
-          <div class="cstat-label">총 항목</div>
-        </div>
-      </div>
-      <div class="card-prog-track">
-        <div class="card-prog-fill" id="bucketProg" style="background:var(--bucket);width:0%"></div>
-      </div>
-      <div class="card-arrow">→</div>
-    </a>
   </div>
 
   <!-- TRACKER GRID -->
@@ -397,208 +370,309 @@ body::after {
 
   <div class="tracker-grid">
 
-    <!-- GMAT -->
-    <a class="card card-gmat" href="gmat_tracker.html">
-      <div class="card-tag">GMAT</div>
-      <div class="card-title">GMAT<br>트래커</div>
-      <div class="card-checks" id="gmatChecks"></div>
-      <div class="streak-badge" id="gmatStreak">— streak</div>
-      <div class="card-arrow">→</div>
+    <a class="tracker-card tc-gmat" href="gmat_tracker.html">
+      <div class="tc-tag">GMAT</div>
+      <div class="tc-title">GMAT<br>트래커</div>
+      <div class="tc-checks" id="gmatChecks"></div>
+      <div class="streak-badge" id="gmatStreak">0 day streak</div>
+      <div class="tc-arrow">→</div>
     </a>
 
-    <!-- AICPA -->
-    <a class="card card-aicpa" href="aicpa_far_tracker.html">
-      <div class="card-tag">AICPA · FAR</div>
-      <div class="card-title">AICPA<br>트래커</div>
-      <div class="card-stats">
-        <div class="cstat">
-          <div class="cstat-num" id="aicpaPct">0%</div>
-          <div class="cstat-label">강의 진도</div>
+    <a class="tracker-card tc-aicpa" href="aicpa_far_tracker.html">
+      <div class="tc-tag">AICPA · FAR</div>
+      <div class="tc-title">AICPA<br>트래커</div>
+      <div class="tc-stats">
+        <div>
+          <div class="tcstat-num" id="aicpaPct">0%</div>
+          <div class="tcstat-label">강의 진도</div>
         </div>
-        <div class="cstat">
-          <div class="cstat-num" id="aicpaWeekQ">0</div>
-          <div class="cstat-label">이번주 문제</div>
+        <div>
+          <div class="tcstat-num" id="aicpaWeekQ">0</div>
+          <div class="tcstat-label">이번주 문제</div>
         </div>
       </div>
-      <div class="card-prog-track">
-        <div class="card-prog-fill" id="aicpaProg" style="background:var(--aicpa);width:0%"></div>
+      <div class="tc-prog-track">
+        <div class="tc-prog-fill" id="aicpaProg" style="background:var(--aicpa);width:0%"></div>
       </div>
-      <div class="card-arrow">→</div>
+      <div class="tc-arrow">→</div>
     </a>
 
-    <!-- Essay / Admission -->
-    <div class="card card-essay" style="cursor:default;">
-      <div class="card-tag">Essay · Admission</div>
-      <div class="card-title">에세이<br>준비</div>
-      <div class="soon-body">
-        준비 중<br>
-        — 에세이 초안<br>
-        — 학교별 리서치<br>
-        — 추천서 관리
-      </div>
+    <div class="tracker-card tc-essay tc-soon" style="cursor:default">
+      <div class="tc-tag">Essay</div>
+      <div class="tc-title">에세이<br>준비</div>
+      <div class="tc-soon-body">준비 중<br>— 에세이 초안<br>— 학교별 리서치<br>— 추천서 관리</div>
     </div>
 
-    <!-- 기타 / 할 일 -->
-    <div class="card card-todo" style="cursor:default;">
-      <div class="card-tag">기타 · 할 일</div>
-      <div class="card-title">투두 &<br>여행준비</div>
-      <div class="soon-body">
-        준비 중<br>
-        — 포르투갈<br>
-        — 동부 학교 투어<br>
-        — 기타 할 일
-      </div>
+    <div class="tracker-card tc-todo tc-soon" style="cursor:default">
+      <div class="tc-tag">기타 · 할 일</div>
+      <div class="tc-title">투두 &<br>여행준비</div>
+      <div class="tc-soon-body">준비 중<br>— 포르투갈<br>— 동부 학교 투어<br>— 기타 할 일</div>
     </div>
 
   </div>
 </div>
 
+<!-- Popup -->
+<div class="overlay" id="overlay" onclick="closePopup(event)">
+  <div class="popup">
+    <button class="popup-close" onclick="closeOverlay()">×</button>
+    <div class="popup-type" id="popType"></div>
+    <div class="popup-title" id="popTitle"></div>
+    <div class="popup-dates" id="popDates"></div>
+    <div class="popup-note" id="popNote"></div>
+    <button class="popup-btn" id="popBtn" onclick="toggleFromPopup()"></button>
+  </div>
+</div>
+
 <script>
-// ── TODAY DATE ──
+// ── DATE ──
 function formatDate(d) {
   const days = ['일','월','화','수','목','금','토'];
   return d.getFullYear() + '년 ' + (d.getMonth()+1) + '월 ' + d.getDate() + '일 (' + days[d.getDay()] + ')';
 }
 document.getElementById('todayDate').textContent = formatDate(new Date());
 
-// ── READ DATA FROM localStorage (written by each tracker) ──
+// ── GANTT DATA ──
+const MONTHS = [
+  {n:'MAY',idx:4},{n:'JUN',idx:5},{n:'JUL',idx:6},{n:'AUG',idx:7},
+  {n:'SEP',idx:8},{n:'OCT',idx:9},{n:'NOV',idx:10},{n:'DEC',idx:11}
+];
+const MONTH_NAMES = ['1월','2월','3월','4월','5월','6월','7월','8월','9월','10월','11월','12월'];
 
-// GMAT tracker data
+const ROWS = [
+  {id:'gmat',  label:'GMAT',  color:'#4A7FA5', bg:'#0A1820'},
+  {id:'toefl', label:'TOEFL', color:'#5A8A6A', bg:'#0A180E'},
+  {id:'far',   label:'FAR',   color:'#C4873A', bg:'#1E1208'},
+  {id:'bar',   label:'BAR',   color:'#A06060', bg:'#1A0E0E'},
+  {id:'aud',   label:'AUD',   color:'#8A70A0', bg:'#140E1C'},
+];
+
+const EVENTS = [
+  {id:'gmat1',  row:'gmat',  sm:4,sd:30, em:5, ed:18, title:'GMAT 1차',         note:'결과 확인 후 8월·9월 추가 등록 여부 결정'},
+  {id:'gmat2',  row:'gmat',  sm:6,sd:19, em:7, ed:17, title:'GMAT 2차',         note:'시험 직후 LA·샌프란 숙소 예약'},
+  {id:'gmat3',  row:'gmat',  sm:7,sd:18, em:8, ed:11, title:'GMAT 3차',         note:'최종 스코어 확정'},
+  {id:'toefl1', row:'toefl', sm:5,sd:19, em:6, ed:19, title:'TOEFL 1차',        note:''},
+  {id:'toefl2', row:'toefl', sm:11,sd:1, em:11,ed:15, title:'TOEFL 예비',       note:'목표 점수 미달 시에만'},
+  {id:'far',    row:'far',   sm:4,sd:1,  em:4, ed:29, title:'FAR 시험',         note:'시험 직후 AUD 등록(LA) 즉시 진행'},
+  {id:'bar',    row:'bar',   sm:4,sd:29, em:9, ed:21, title:'BAR 준비 → 시험',  note:'FAR 종료 후 시작 / 10월 마지막주 시험'},
+  {id:'aud',    row:'aud',   sm:4,sd:29, em:10,ed:25, title:'AUD 준비 → 시험',  note:'FAR 종료 후 시작 / 시험 장소: LA'},
+];
+
+const COL_W = 100;
+const MIN_W = 28;
+
+let done = {};
+try { done = JSON.parse(localStorage.getItem('mba_v3') || '{}'); } catch(e) {}
+function saveDone() { try { localStorage.setItem('mba_v3', JSON.stringify(done)); } catch(e) {} }
+
+function daysInMonth(m) { return new Date(2025, m+1, 0).getDate(); }
+function frac(m, d) { return (d-1)/daysInMonth(m); }
+function colOf(m) { return MONTHS.findIndex(x => x.idx===m); }
+function toX(m, d) { const c = colOf(m); return c<0 ? -9999 : c*COL_W + frac(m,d)*COL_W; }
+function dateStr(m, d) { return MONTH_NAMES[m] + ' ' + d + '일'; }
+
+let currentPopupId = null;
+
+function openPopup(ev, row) {
+  currentPopupId = ev.id;
+  const isDone = !!done[ev.id];
+  document.getElementById('popType').textContent = row.label;
+  document.getElementById('popType').style.color = row.color;
+  document.getElementById('popTitle').textContent = ev.title;
+  document.getElementById('popDates').textContent =
+    ev.sm !== undefined ? dateStr(ev.sm, ev.sd) + ' → ' + dateStr(ev.em, ev.ed) : '마감: ' + dateStr(ev.em, ev.ed);
+  document.getElementById('popNote').textContent = ev.note || '';
+  const btn = document.getElementById('popBtn');
+  if (isDone) { btn.textContent = '✓ 완료됨 — 취소하기'; btn.className = 'popup-btn mark-undone'; }
+  else { btn.textContent = '완료로 표시하기'; btn.className = 'popup-btn mark-done'; }
+  document.getElementById('overlay').classList.add('open');
+}
+
+function closeOverlay() { document.getElementById('overlay').classList.remove('open'); currentPopupId = null; }
+function closePopup(e) { if (e.target===document.getElementById('overlay')) closeOverlay(); }
+function toggleFromPopup() {
+  if (!currentPopupId) return;
+  done[currentPopupId] = !done[currentPopupId];
+  saveDone(); closeOverlay(); buildGantt(); updateRoadmapMeta(); updateOverall();
+}
+
+function buildGantt() {
+  const mhi = document.getElementById('ganttMhi');
+  mhi.innerHTML = '';
+  mhi.style.width = (MONTHS.length * COL_W) + 'px';
+  MONTHS.forEach(m => {
+    const c = document.createElement('div');
+    c.className = 'gantt-month-cell';
+    c.innerHTML = '<div class="gantt-month-name">'+m.n+'</div><div class="gantt-month-sub">2025</div>';
+    mhi.appendChild(c);
+  });
+
+  const lc = document.getElementById('ganttLabelCol');
+  lc.innerHTML = '';
+  ROWS.forEach(r => {
+    const c = document.createElement('div');
+    c.className = 'gantt-label-cell';
+    c.innerHTML = '<div class="gantt-label-dot" style="background:'+r.color+'"></div><div class="gantt-label-text" style="color:'+r.color+'">'+r.label+'</div>';
+    lc.appendChild(c);
+  });
+
+  const cg = document.getElementById('ganttCg');
+  cg.innerHTML = '';
+  cg.style.width = (MONTHS.length * COL_W) + 'px';
+
+  const now = new Date();
+  const tci = colOf(now.getMonth());
+  if (tci >= 0) {
+    const tx = tci*COL_W + frac(now.getMonth(), now.getDate())*COL_W;
+    const tlbl = document.createElement('div'); tlbl.className = 'gantt-today-lbl'; tlbl.style.left = tx+'px'; tlbl.textContent = 'TODAY';
+    const tl = document.createElement('div'); tl.className = 'gantt-today-line'; tl.style.left = tx+'px';
+    cg.appendChild(tlbl); cg.appendChild(tl);
+  }
+
+  ROWS.forEach(row => {
+    const rowEl = document.createElement('div');
+    rowEl.className = 'gantt-crow';
+    MONTHS.forEach((m, mi) => {
+      const cell = document.createElement('div');
+      cell.className = 'gantt-ccell';
+      if (mi%2===1) cell.style.background = 'rgba(255,255,255,0.01)';
+      rowEl.appendChild(cell);
+    });
+
+    EVENTS.filter(e => e.row===row.id).forEach(ev => {
+      const endX = toX(ev.em, ev.ed);
+      if (endX < -999) return;
+      const startX = ev.sm!==undefined ? toX(ev.sm, ev.sd) : (endX - MIN_W);
+      const chipW = Math.max(MIN_W, endX - startX);
+      const isDone = !!done[ev.id];
+
+      const chip = document.createElement('div');
+      chip.className = 'gantt-chip' + (isDone?' done':'');
+      chip.style.cssText = 'left:'+startX+'px;width:'+chipW+'px;background:'+row.bg+';border:1px solid '+row.color+'55;color:'+row.color+';';
+
+      const mark = document.createElement('div');
+      mark.className = 'gantt-end-mark'; mark.style.background = row.color;
+
+      const chk = document.createElement('div');
+      chk.className = 'gantt-chip-check'+(isDone?' ticked':'');
+
+      const body = document.createElement('div');
+      body.style.cssText = 'flex:1;overflow:hidden;min-width:0;';
+      body.innerHTML = '<div class="gantt-chip-title">'+ev.title+'</div>';
+
+      chip.appendChild(chk); chip.appendChild(body); chip.appendChild(mark);
+      chip.onclick = () => openPopup(ev, row);
+      rowEl.appendChild(chip);
+    });
+
+    cg.appendChild(rowEl);
+  });
+
+  const cs = document.getElementById('ganttCs');
+  const mhs = document.getElementById('ganttMhs');
+  cs.onscroll = () => { mhs.scrollLeft = cs.scrollLeft; };
+}
+
+function updateRoadmapMeta() {
+  const total = EVENTS.length;
+  const cnt = Object.values(done).filter(Boolean).length;
+  const pct = total ? Math.round(cnt/total*100) : 0;
+  document.getElementById('roadmapPct').textContent = pct + '%';
+
+  const now = new Date();
+  const upcoming = EVENTS.filter(e => {
+    if (done[e.id]) return false;
+    return new Date(2025, e.em, e.ed) >= now;
+  }).sort((a,b) => new Date(2025,a.em,a.ed) - new Date(2025,b.em,b.ed));
+
+  if (upcoming.length) {
+    const next = upcoming[0];
+    const diff = Math.ceil((new Date(2025, next.em, next.ed) - now) / (1000*60*60*24));
+    document.getElementById('nextMilestone').innerHTML = '<strong>'+next.title+'</strong> D-'+diff;
+  } else {
+    document.getElementById('nextMilestone').innerHTML = '모든 마일스톤 완료 🎉';
+  }
+}
+
+function loadBucket() {
+  try {
+    const state = JSON.parse(localStorage.getItem('bucket_v3') || '{}');
+    let total = 0, doneB = 0;
+    (state.sections||[]).forEach(s => s.items.forEach(it => it.subs.forEach(sub => { total++; if(sub.done) doneB++; })));
+    const pct = total ? Math.round(doneB/total*100) : 0;
+    document.getElementById('bucketDone').textContent = doneB;
+    document.getElementById('bucketTotal').textContent = total;
+    document.getElementById('bucketProg').style.width = pct+'%';
+  } catch(e) {}
+}
+
 function loadGmat() {
   try {
     const state = JSON.parse(localStorage.getItem('gmat_tracker_v3') || '{}');
     const todayKey = new Date().toISOString().slice(0,10);
-    const checks = (state.todayChecks || {})[todayKey] || {};
+    const checks = (state.todayChecks||{})[todayKey] || {};
     const amDone = !!(checks['am1'] && checks['am2']);
     const pmDone = !!(checks['pm1'] && checks['pm2']);
 
-    // streak
-    const days = state.days || {};
     let streak = 0;
+    const days = state.days || {};
     const now = new Date(); now.setHours(0,0,0,0);
     for (let i = 0; i < 30; i++) {
-      const d = new Date(now); d.setDate(d.getDate() - i);
+      const d = new Date(now); d.setDate(d.getDate()-i);
       const k = d.toISOString().slice(0,10);
       if (days[k] && (days[k].am || days[k].pm)) streak++;
-      else if (i > 0) break;
+      else if (i>0) break;
     }
 
-    document.getElementById('gmatStreak').textContent = streak + ' day streak';
     document.getElementById('gmatChecks').innerHTML =
-      checkRow('아침 Economist', amDone) +
-      checkRow('저녁 7문제', pmDone);
+      '<div class="tc-check-row"><div class="tc-dot'+(amDone?' done':'')+'"></div><span>아침 Economist</span></div>' +
+      '<div class="tc-check-row"><div class="tc-dot'+(pmDone?' done':'')+'"></div><span>저녁 7문제</span></div>';
+    document.getElementById('gmatStreak').textContent = streak+' day streak';
   } catch(e) {
-    document.getElementById('gmatChecks').innerHTML = checkRow('아침 Economist', false) + checkRow('저녁 7문제', false);
-    document.getElementById('gmatStreak').textContent = '0 day streak';
+    document.getElementById('gmatChecks').innerHTML =
+      '<div class="tc-check-row"><div class="tc-dot"></div><span>아침 Economist</span></div>' +
+      '<div class="tc-check-row"><div class="tc-dot"></div><span>저녁 7문제</span></div>';
   }
 }
 
-function checkRow(label, done) {
-  return `<div class="card-check-row">
-    <div class="check-dot ${done?'done':''}"></div>
-    <span>${label}</span>
-  </div>`;
-}
-
-// AICPA data
 function loadAicpa() {
   try {
     const state = JSON.parse(localStorage.getItem('aicpa_far_v2') || '{}');
     const lectures = state.lectures || {};
     const logs = state.logs || [];
-
-    // Total lectures
-    const totalL = 58 + (4+11+13+6+13+3+4+4) + (3+10+2+1+2+4+2+12); // Inter + Advance + NFP
+    const totalL = 34 + 58 + 36;
     const doneL = Object.values(lectures).filter(Boolean).length;
     const pct = totalL ? Math.round(doneL/totalL*100) : 0;
-
-    // This week
-    const weekStart = new Date(); weekStart.setDate(weekStart.getDate() - weekStart.getDay());
+    const weekStart = new Date(); weekStart.setDate(weekStart.getDate()-weekStart.getDay());
     const weekKey = weekStart.toISOString().slice(0,10);
-    const weekQ = logs.filter(l => l.date >= weekKey).reduce((s,l) => s+l.q, 0);
-
-    document.getElementById('aicpaPct').textContent = pct + '%';
+    const weekQ = logs.filter(l => l.date>=weekKey).reduce((s,l) => s+l.q, 0);
+    document.getElementById('aicpaPct').textContent = pct+'%';
     document.getElementById('aicpaWeekQ').textContent = weekQ;
-    document.getElementById('aicpaProg').style.width = pct + '%';
+    document.getElementById('aicpaProg').style.width = pct+'%';
   } catch(e) {}
 }
 
-// Bucket list data
-function loadBucket() {
+function updateOverall() {
   try {
-    const state = JSON.parse(localStorage.getItem('bucket_v3') || '{}');
-    const sections = state.sections || [];
-    let total = 0, done = 0;
-    sections.forEach(s => s.items.forEach(it => it.subs.forEach(sub => {
-      total++; if(sub.done) done++;
-    })));
-    const pct = total ? Math.round(done/total*100) : 0;
-    document.getElementById('bucketDone').textContent = done;
-    document.getElementById('bucketTotal').textContent = total;
-    document.getElementById('bucketProg').style.width = pct + '%';
+    const roadTotal = EVENTS.length;
+    const roadDone = Object.values(done).filter(Boolean).length;
+    const bucketState = JSON.parse(localStorage.getItem('bucket_v3') || '{}');
+    let bTotal = 0, bDone = 0;
+    (bucketState.sections||[]).forEach(s => s.items.forEach(it => it.subs.forEach(sub => { bTotal++; if(sub.done) bDone++; })));
+    const allTotal = roadTotal + bTotal;
+    const allDone = roadDone + bDone;
+    const pct = allTotal ? Math.round(allDone/allTotal*100) : 0;
+    document.getElementById('overallPct').textContent = pct+'%';
   } catch(e) {}
 }
 
-// Roadmap data
-function loadRoadmap() {
-  try {
-    const done = JSON.parse(localStorage.getItem('mba_v3') || '{}');
-    const EVENTS = [
-      {id:'far',   em:4,  ed:29, title:'FAR 시험'},
-      {id:'gmat1', em:5,  ed:18, title:'GMAT 1차'},
-      {id:'toefl1',em:6,  ed:19, title:'TOEFL 1차'},
-      {id:'gmat2', em:7,  ed:17, title:'GMAT 2차'},
-      {id:'gmat3', em:8,  ed:11, title:'GMAT 3차'},
-      {id:'bar',   em:9,  ed:21, title:'BAR 시험'},
-      {id:'aud',   em:10, ed:25, title:'AUD 시험'},
-      {id:'toefl2',em:11, ed:15, title:'TOEFL 예비'},
-    ];
-
-    const total = EVENTS.length;
-    const cnt = Object.values(done).filter(Boolean).length;
-    const pct = total ? Math.round(cnt/total*100) : 0;
-    document.getElementById('roadmapProg').style.width = pct + '%';
-
-    // Next upcoming milestone
-    const now = new Date();
-    const upcoming = EVENTS.filter(e => {
-      if (done[e.id]) return false;
-      const d = new Date(2025, e.em, e.ed);
-      return d >= now;
-    }).sort((a,b) => new Date(2025,a.em,a.ed) - new Date(2025,b.em,b.ed));
-
-    if (upcoming.length) {
-      const next = upcoming[0];
-      const nextDate = new Date(2025, next.em, next.ed);
-      const diff = Math.ceil((nextDate - now) / (1000*60*60*24));
-      document.getElementById('nextMilestone').innerHTML =
-        `다음 — <strong>${next.title}</strong><br>D-${diff}일`;
-    } else {
-      document.getElementById('nextMilestone').innerHTML = '모든 마일스톤 완료 🎉';
-    }
-
-    // Overall pct (roadmap + bucket combined)
-    try {
-      const bucketState = JSON.parse(localStorage.getItem('bucket_v3') || '{}');
-      let bTotal = 0, bDone = 0;
-      (bucketState.sections||[]).forEach(s => s.items.forEach(it => it.subs.forEach(sub => {
-        bTotal++; if(sub.done) bDone++;
-      })));
-      const allTotal = total + bTotal;
-      const allDone = cnt + bDone;
-      const allPct = allTotal ? Math.round(allDone/allTotal*100) : 0;
-      document.getElementById('overallPct').textContent = allPct + '%';
-    } catch(e) {}
-
-  } catch(e) {
-    document.getElementById('nextMilestone').textContent = '로드맵을 먼저 열어주세요';
-  }
-}
-
+// Init
+buildGantt();
+updateRoadmapMeta();
+loadBucket();
 loadGmat();
 loadAicpa();
-loadBucket();
-loadRoadmap();
+updateOverall();
 </script>
 </body>
 </html>
