@@ -1,0 +1,604 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>히림의 대시보드</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400&family=Noto+Serif+KR:wght@300;400;500&display=swap');
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg: #0A0A09;
+  --surface: #111110;
+  --surface2: #181816;
+  --border: #232320;
+  --border2: #2E2E2A;
+  --text: #D4C9B0;
+  --text2: #8A8070;
+  --text3: #4A4840;
+  --accent: #C8A96E;
+  --accent2: #E8D5B0;
+
+  --gmat: #4A7FA5;
+  --aicpa: #C4873A;
+  --essay: #7A6AA0;
+  --todo: #5A8A6A;
+  --roadmap: #A06060;
+  --bucket: #8A7060;
+}
+
+html, body {
+  min-height: 100vh;
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Noto Serif KR', serif;
+}
+
+/* Grain overlay */
+body::after {
+  content: '';
+  position: fixed; inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+  pointer-events: none; z-index: 100; opacity: 0.4;
+}
+
+/* ── HEADER ── */
+.header {
+  padding: 36px 28px 28px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.header-left .greeting {
+  font-family: 'DM Mono', monospace;
+  font-size: 9px;
+  letter-spacing: 3px;
+  color: var(--text3);
+  text-transform: uppercase;
+  margin-bottom: 8px;
+}
+
+.header-left h1 {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 32px;
+  font-weight: 300;
+  color: var(--accent2);
+  letter-spacing: 0.5px;
+  line-height: 1;
+  font-style: italic;
+}
+
+.header-right {
+  text-align: right;
+}
+
+.today-date {
+  font-family: 'DM Mono', monospace;
+  font-size: 11px;
+  color: var(--text3);
+  letter-spacing: 1px;
+  margin-bottom: 6px;
+}
+
+.overall-prog {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  justify-content: flex-end;
+}
+
+.overall-pct {
+  font-family: 'DM Mono', monospace;
+  font-size: 18px;
+  color: var(--accent);
+  line-height: 1;
+}
+
+.overall-label {
+  font-family: 'DM Mono', monospace;
+  font-size: 8px;
+  color: var(--text3);
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+
+/* ── MAIN LAYOUT ── */
+.main { padding: 24px 24px 48px; max-width: 680px; margin: 0 auto; }
+
+/* ── TOP ROW: Roadmap + Bucket ── */
+.top-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+  margin-bottom: 14px;
+}
+
+/* ── BOTTOM GRID: 4 trackers ── */
+.tracker-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+
+/* ── BASE CARD ── */
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  padding: 18px 18px 16px;
+  cursor: pointer;
+  text-decoration: none;
+  color: inherit;
+  display: block;
+  transition: border-color 0.2s, background 0.2s;
+  position: relative;
+  overflow: hidden;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.card:active { background: var(--surface2); }
+
+/* Accent left border */
+.card::before {
+  content: '';
+  position: absolute;
+  left: 0; top: 0; bottom: 0;
+  width: 2px;
+}
+
+.card-roadmap::before  { background: var(--roadmap); }
+.card-bucket::before   { background: var(--bucket); }
+.card-gmat::before     { background: var(--gmat); }
+.card-aicpa::before    { background: var(--aicpa); }
+.card-essay::before    { background: var(--essay); }
+.card-todo::before     { background: var(--todo); }
+.card-soon::before     { background: var(--border2); }
+
+.card-tag {
+  font-family: 'DM Mono', monospace;
+  font-size: 8px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  margin-bottom: 8px;
+  opacity: 0.7;
+}
+
+.card-roadmap .card-tag  { color: var(--roadmap); }
+.card-bucket .card-tag   { color: var(--bucket); }
+.card-gmat .card-tag     { color: var(--gmat); }
+.card-aicpa .card-tag    { color: var(--aicpa); }
+.card-essay .card-tag    { color: var(--essay); }
+.card-todo .card-tag     { color: var(--todo); }
+.card-soon .card-tag     { color: var(--text3); }
+
+.card-title {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 20px;
+  font-weight: 400;
+  color: var(--accent2);
+  line-height: 1.2;
+  margin-bottom: 12px;
+}
+
+.card-soon .card-title { color: var(--text3); font-style: italic; }
+
+/* Stats row inside card */
+.card-stats {
+  display: flex;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+
+.cstat {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.cstat-num {
+  font-family: 'DM Mono', monospace;
+  font-size: 16px;
+  color: var(--accent);
+  line-height: 1;
+}
+
+.cstat-label {
+  font-family: 'DM Mono', monospace;
+  font-size: 8px;
+  color: var(--text3);
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+
+/* Progress bar in card */
+.card-prog-track {
+  height: 2px;
+  background: var(--border2);
+  border-radius: 99px;
+  margin-top: 12px;
+  overflow: hidden;
+}
+
+.card-prog-fill {
+  height: 100%;
+  border-radius: 99px;
+  transition: width 0.4s ease;
+}
+
+/* Next milestone */
+.card-milestone {
+  font-size: 12px;
+  color: var(--text2);
+  line-height: 1.5;
+  margin-bottom: 10px;
+}
+
+.card-milestone strong {
+  color: var(--accent);
+  font-weight: 500;
+}
+
+/* Checklist preview */
+.card-checks {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  margin-top: 4px;
+}
+
+.card-check-row {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 11px;
+  color: var(--text2);
+}
+
+.check-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  border: 1px solid var(--border2);
+}
+
+.check-dot.done { background: var(--accent); border-color: var(--accent); }
+
+/* Coming soon */
+.soon-body {
+  font-family: 'DM Mono', monospace;
+  font-size: 9px;
+  color: var(--text3);
+  letter-spacing: 1px;
+  line-height: 1.8;
+  padding: 8px 0 4px;
+}
+
+/* Arrow */
+.card-arrow {
+  position: absolute;
+  bottom: 14px;
+  right: 16px;
+  font-family: 'DM Mono', monospace;
+  font-size: 10px;
+  color: var(--text3);
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+
+.card:hover .card-arrow { opacity: 1; }
+
+/* Streak badge */
+.streak-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  background: var(--surface2);
+  border: 1px solid var(--border2);
+  border-radius: 2px;
+  padding: 3px 8px;
+  font-family: 'DM Mono', monospace;
+  font-size: 10px;
+  color: var(--accent);
+  margin-top: 10px;
+}
+
+/* Divider label */
+.section-divider {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 14px;
+  margin-top: 4px;
+}
+
+.divider-line { flex: 1; height: 1px; background: var(--border); }
+.divider-label {
+  font-family: 'DM Mono', monospace;
+  font-size: 8px;
+  letter-spacing: 2.5px;
+  color: var(--text3);
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-left">
+    <div class="greeting">Personal Dashboard</div>
+    <h1>히림의 공간</h1>
+  </div>
+  <div class="header-right">
+    <div class="today-date" id="todayDate"></div>
+    <div class="overall-prog">
+      <div>
+        <div class="overall-pct" id="overallPct">—</div>
+        <div class="overall-label">전체 달성률</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="main">
+
+  <!-- TOP ROW -->
+  <div class="section-divider">
+    <div class="divider-line"></div>
+    <div class="divider-label">큰 그림</div>
+    <div class="divider-line"></div>
+  </div>
+
+  <div class="top-row">
+    <!-- MBA Roadmap -->
+    <a class="card card-roadmap" href="mba_roadmap_v2.html">
+      <div class="card-tag">MBA Roadmap</div>
+      <div class="card-title">로드맵</div>
+      <div class="card-milestone" id="nextMilestone">다음 마일스톤 로딩 중...</div>
+      <div class="card-prog-track">
+        <div class="card-prog-fill" id="roadmapProg" style="background:var(--roadmap);width:0%"></div>
+      </div>
+      <div class="card-arrow">→</div>
+    </a>
+
+    <!-- Bucket List -->
+    <a class="card card-bucket" href="bucketlist.html">
+      <div class="card-tag">Bucket List</div>
+      <div class="card-title">버킷리스트</div>
+      <div class="card-stats">
+        <div class="cstat">
+          <div class="cstat-num" id="bucketDone">0</div>
+          <div class="cstat-label">완료</div>
+        </div>
+        <div class="cstat">
+          <div class="cstat-num" id="bucketTotal">0</div>
+          <div class="cstat-label">총 항목</div>
+        </div>
+      </div>
+      <div class="card-prog-track">
+        <div class="card-prog-fill" id="bucketProg" style="background:var(--bucket);width:0%"></div>
+      </div>
+      <div class="card-arrow">→</div>
+    </a>
+  </div>
+
+  <!-- TRACKER GRID -->
+  <div class="section-divider">
+    <div class="divider-line"></div>
+    <div class="divider-label">트래커</div>
+    <div class="divider-line"></div>
+  </div>
+
+  <div class="tracker-grid">
+
+    <!-- GMAT -->
+    <a class="card card-gmat" href="gmat_tracker.html">
+      <div class="card-tag">GMAT</div>
+      <div class="card-title">GMAT<br>트래커</div>
+      <div class="card-checks" id="gmatChecks"></div>
+      <div class="streak-badge" id="gmatStreak">— streak</div>
+      <div class="card-arrow">→</div>
+    </a>
+
+    <!-- AICPA -->
+    <a class="card card-aicpa" href="aicpa_far_tracker.html">
+      <div class="card-tag">AICPA · FAR</div>
+      <div class="card-title">AICPA<br>트래커</div>
+      <div class="card-stats">
+        <div class="cstat">
+          <div class="cstat-num" id="aicpaPct">0%</div>
+          <div class="cstat-label">강의 진도</div>
+        </div>
+        <div class="cstat">
+          <div class="cstat-num" id="aicpaWeekQ">0</div>
+          <div class="cstat-label">이번주 문제</div>
+        </div>
+      </div>
+      <div class="card-prog-track">
+        <div class="card-prog-fill" id="aicpaProg" style="background:var(--aicpa);width:0%"></div>
+      </div>
+      <div class="card-arrow">→</div>
+    </a>
+
+    <!-- Essay / Admission -->
+    <div class="card card-essay" style="cursor:default;">
+      <div class="card-tag">Essay · Admission</div>
+      <div class="card-title">에세이<br>준비</div>
+      <div class="soon-body">
+        준비 중<br>
+        — 에세이 초안<br>
+        — 학교별 리서치<br>
+        — 추천서 관리
+      </div>
+    </div>
+
+    <!-- 기타 / 할 일 -->
+    <div class="card card-todo" style="cursor:default;">
+      <div class="card-tag">기타 · 할 일</div>
+      <div class="card-title">투두 &<br>여행준비</div>
+      <div class="soon-body">
+        준비 중<br>
+        — 포르투갈<br>
+        — 동부 학교 투어<br>
+        — 기타 할 일
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+// ── TODAY DATE ──
+function formatDate(d) {
+  const days = ['일','월','화','수','목','금','토'];
+  return d.getFullYear() + '년 ' + (d.getMonth()+1) + '월 ' + d.getDate() + '일 (' + days[d.getDay()] + ')';
+}
+document.getElementById('todayDate').textContent = formatDate(new Date());
+
+// ── READ DATA FROM localStorage (written by each tracker) ──
+
+// GMAT tracker data
+function loadGmat() {
+  try {
+    const state = JSON.parse(localStorage.getItem('gmat_tracker_v3') || '{}');
+    const todayKey = new Date().toISOString().slice(0,10);
+    const checks = (state.todayChecks || {})[todayKey] || {};
+    const amDone = !!(checks['am1'] && checks['am2']);
+    const pmDone = !!(checks['pm1'] && checks['pm2']);
+
+    // streak
+    const days = state.days || {};
+    let streak = 0;
+    const now = new Date(); now.setHours(0,0,0,0);
+    for (let i = 0; i < 30; i++) {
+      const d = new Date(now); d.setDate(d.getDate() - i);
+      const k = d.toISOString().slice(0,10);
+      if (days[k] && (days[k].am || days[k].pm)) streak++;
+      else if (i > 0) break;
+    }
+
+    document.getElementById('gmatStreak').textContent = streak + ' day streak';
+    document.getElementById('gmatChecks').innerHTML =
+      checkRow('아침 Economist', amDone) +
+      checkRow('저녁 7문제', pmDone);
+  } catch(e) {
+    document.getElementById('gmatChecks').innerHTML = checkRow('아침 Economist', false) + checkRow('저녁 7문제', false);
+    document.getElementById('gmatStreak').textContent = '0 day streak';
+  }
+}
+
+function checkRow(label, done) {
+  return `<div class="card-check-row">
+    <div class="check-dot ${done?'done':''}"></div>
+    <span>${label}</span>
+  </div>`;
+}
+
+// AICPA data
+function loadAicpa() {
+  try {
+    const state = JSON.parse(localStorage.getItem('aicpa_far_v2') || '{}');
+    const lectures = state.lectures || {};
+    const logs = state.logs || [];
+
+    // Total lectures
+    const totalL = 58 + (4+11+13+6+13+3+4+4) + (3+10+2+1+2+4+2+12); // Inter + Advance + NFP
+    const doneL = Object.values(lectures).filter(Boolean).length;
+    const pct = totalL ? Math.round(doneL/totalL*100) : 0;
+
+    // This week
+    const weekStart = new Date(); weekStart.setDate(weekStart.getDate() - weekStart.getDay());
+    const weekKey = weekStart.toISOString().slice(0,10);
+    const weekQ = logs.filter(l => l.date >= weekKey).reduce((s,l) => s+l.q, 0);
+
+    document.getElementById('aicpaPct').textContent = pct + '%';
+    document.getElementById('aicpaWeekQ').textContent = weekQ;
+    document.getElementById('aicpaProg').style.width = pct + '%';
+  } catch(e) {}
+}
+
+// Bucket list data
+function loadBucket() {
+  try {
+    const state = JSON.parse(localStorage.getItem('bucket_v3') || '{}');
+    const sections = state.sections || [];
+    let total = 0, done = 0;
+    sections.forEach(s => s.items.forEach(it => it.subs.forEach(sub => {
+      total++; if(sub.done) done++;
+    })));
+    const pct = total ? Math.round(done/total*100) : 0;
+    document.getElementById('bucketDone').textContent = done;
+    document.getElementById('bucketTotal').textContent = total;
+    document.getElementById('bucketProg').style.width = pct + '%';
+  } catch(e) {}
+}
+
+// Roadmap data
+function loadRoadmap() {
+  try {
+    const done = JSON.parse(localStorage.getItem('mba_v3') || '{}');
+    const EVENTS = [
+      {id:'far',   em:4,  ed:29, title:'FAR 시험'},
+      {id:'gmat1', em:5,  ed:18, title:'GMAT 1차'},
+      {id:'toefl1',em:6,  ed:19, title:'TOEFL 1차'},
+      {id:'gmat2', em:7,  ed:17, title:'GMAT 2차'},
+      {id:'gmat3', em:8,  ed:11, title:'GMAT 3차'},
+      {id:'bar',   em:9,  ed:21, title:'BAR 시험'},
+      {id:'aud',   em:10, ed:25, title:'AUD 시험'},
+      {id:'toefl2',em:11, ed:15, title:'TOEFL 예비'},
+    ];
+
+    const total = EVENTS.length;
+    const cnt = Object.values(done).filter(Boolean).length;
+    const pct = total ? Math.round(cnt/total*100) : 0;
+    document.getElementById('roadmapProg').style.width = pct + '%';
+
+    // Next upcoming milestone
+    const now = new Date();
+    const upcoming = EVENTS.filter(e => {
+      if (done[e.id]) return false;
+      const d = new Date(2025, e.em, e.ed);
+      return d >= now;
+    }).sort((a,b) => new Date(2025,a.em,a.ed) - new Date(2025,b.em,b.ed));
+
+    if (upcoming.length) {
+      const next = upcoming[0];
+      const nextDate = new Date(2025, next.em, next.ed);
+      const diff = Math.ceil((nextDate - now) / (1000*60*60*24));
+      document.getElementById('nextMilestone').innerHTML =
+        `다음 — <strong>${next.title}</strong><br>D-${diff}일`;
+    } else {
+      document.getElementById('nextMilestone').innerHTML = '모든 마일스톤 완료 🎉';
+    }
+
+    // Overall pct (roadmap + bucket combined)
+    try {
+      const bucketState = JSON.parse(localStorage.getItem('bucket_v3') || '{}');
+      let bTotal = 0, bDone = 0;
+      (bucketState.sections||[]).forEach(s => s.items.forEach(it => it.subs.forEach(sub => {
+        bTotal++; if(sub.done) bDone++;
+      })));
+      const allTotal = total + bTotal;
+      const allDone = cnt + bDone;
+      const allPct = allTotal ? Math.round(allDone/allTotal*100) : 0;
+      document.getElementById('overallPct').textContent = allPct + '%';
+    } catch(e) {}
+
+  } catch(e) {
+    document.getElementById('nextMilestone').textContent = '로드맵을 먼저 열어주세요';
+  }
+}
+
+loadGmat();
+loadAicpa();
+loadBucket();
+loadRoadmap();
+</script>
+</body>
+</html>

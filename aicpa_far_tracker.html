@@ -1,0 +1,548 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AICPA FAR 공부 기록</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Spectral:ital,wght@0,400;0,500;0,600;1,400&display=swap');
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg: #0C0C0B;
+  --surface: #141412;
+  --surface2: #1C1C1A;
+  --border: #272725;
+  --border2: #353533;
+  --text: #D4C9B0;
+  --text2: #9A9A8A;
+  --text3: #5A5A50;
+  --accent: #E8D5B7;
+}
+
+html, body { min-height: 100vh; background: var(--bg); color: var(--text); font-family: 'Spectral', Georgia, serif; }
+
+.header { padding: 22px 20px 16px; border-bottom: 1px solid var(--border); background: var(--bg); position: sticky; top: 0; z-index: 20; }
+.header-sys { font-family: 'DM Mono', monospace; font-size: 8px; letter-spacing: 3px; color: var(--text3); margin-bottom: 5px; text-transform: uppercase; }
+.header-row { display: flex; align-items: flex-end; justify-content: space-between; gap: 12px; }
+.header h1 { font-size: 18px; font-weight: 500; color: var(--accent); }
+.streak-box { text-align: right; }
+.streak-num { font-family: 'DM Mono', monospace; font-size: 22px; font-weight: 500; color: var(--accent); line-height: 1; }
+.streak-label { font-family: 'DM Mono', monospace; font-size: 8px; color: var(--text3); letter-spacing: 1px; margin-top: 2px; }
+
+.tabs { display: flex; border-bottom: 1px solid var(--border); padding: 0 20px; background: var(--bg); overflow-x: auto; }
+.tab-btn { background: none; border: none; border-bottom: 2px solid transparent; color: var(--text3); font-family: 'DM Mono', monospace; font-size: 10px; letter-spacing: 2px; padding: 12px 16px 10px; cursor: pointer; white-space: nowrap; text-transform: uppercase; transition: all 0.2s; -webkit-tap-highlight-color: transparent; }
+.tab-btn.active { border-bottom-color: var(--accent); color: var(--accent); }
+
+.content { padding: 20px; max-width: 600px; margin: 0 auto; }
+.tab-pane { display: none; }
+.tab-pane.active { display: block; }
+
+.section-label { font-family: 'DM Mono', monospace; font-size: 9px; color: var(--text3); letter-spacing: 3px; text-transform: uppercase; margin-bottom: 10px; }
+.divider { height: 1px; background: linear-gradient(to right, var(--border), transparent); margin-bottom: 20px; }
+
+.stats-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 24px; }
+.stat-card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 14px 12px; text-align: center; }
+.stat-num { font-family: 'DM Mono', monospace; font-size: 22px; font-weight: 500; color: var(--accent); line-height: 1; margin-bottom: 4px; }
+.stat-label { font-family: 'DM Mono', monospace; font-size: 8px; color: var(--text3); letter-spacing: 1px; }
+
+.prog-row { margin-bottom: 12px; }
+.prog-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px; }
+.prog-name { font-family: 'DM Mono', monospace; font-size: 10px; letter-spacing: 0.5px; }
+.prog-pct { font-family: 'DM Mono', monospace; font-size: 10px; color: var(--text3); }
+.prog-track { height: 4px; background: var(--border); border-radius: 99px; overflow: hidden; }
+.prog-fill { height: 100%; border-radius: 99px; transition: width 0.4s ease; }
+
+/* ── TOPIC GROUP ── */
+.topic-group { margin-bottom: 16px; }
+
+.group-header { display: flex; align-items: center; gap: 10px; padding: 8px 12px; border-radius: 8px; margin-bottom: 8px; }
+.group-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
+.group-name { font-family: 'DM Mono', monospace; font-size: 10px; letter-spacing: 1px; text-transform: uppercase; }
+.group-count { font-family: 'DM Mono', monospace; font-size: 9px; color: var(--text3); margin-left: auto; }
+
+/* Topic row — clickable header */
+.topic-row { border: 1px solid var(--border); border-radius: 8px; margin-bottom: 6px; overflow: hidden; }
+
+.topic-header {
+  display: flex; align-items: center; gap: 10px;
+  padding: 10px 12px;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: background 0.15s;
+}
+.topic-header:active { background: var(--surface2); }
+
+.topic-check-box {
+  width: 18px; height: 18px; border-radius: 4px;
+  border: 1.5px solid var(--border2);
+  background: transparent; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  transition: all 0.15s;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+.topic-check-box.partial { border-color: currentColor; }
+.topic-check-box.partial::after { content: ''; display: block; width: 8px; height: 2px; background: currentColor; border-radius: 1px; }
+.topic-check-box.full { background: currentColor; border-color: currentColor; }
+.topic-check-box.full::after { content: ''; display: block; width: 4px; height: 7px; border: 2px solid var(--bg); border-top: none; border-left: none; transform: rotate(45deg) translate(-0.5px, -1px); }
+
+.topic-info { flex: 1; min-width: 0; }
+.topic-title { font-size: 13px; color: var(--text); line-height: 1.3; margin-bottom: 3px; }
+.topic-meta { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+.topic-tag { font-family: 'DM Mono', monospace; font-size: 9px; padding: 2px 7px; border-radius: 3px; background: var(--surface2); color: var(--text3); }
+.topic-tag.week-tag { color: var(--text2); }
+.topic-prog { font-family: 'DM Mono', monospace; font-size: 9px; color: var(--text3); }
+
+.topic-chevron {
+  font-size: 10px; color: var(--text3);
+  transition: transform 0.2s;
+  flex-shrink: 0;
+  padding: 2px 4px;
+}
+.topic-chevron.open { transform: rotate(90deg); }
+
+/* Lecture list (dropdown) */
+.lecture-list {
+  display: none;
+  border-top: 1px solid var(--border);
+  background: var(--surface);
+  padding: 6px 0;
+}
+.lecture-list.open { display: block; }
+
+.lecture-item {
+  display: flex; align-items: center; gap: 10px;
+  padding: 8px 14px 8px 42px;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: background 0.1s;
+}
+.lecture-item:active { background: var(--surface2); }
+
+.lec-check {
+  width: 15px; height: 15px; border-radius: 3px;
+  border: 1.5px solid var(--border2);
+  background: transparent; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  transition: all 0.15s;
+}
+.lec-check.on { background: currentColor; border-color: currentColor; }
+.lec-check.on::after { content: ''; display: block; width: 3px; height: 6px; border: 2px solid var(--bg); border-top: none; border-left: none; transform: rotate(45deg) translate(-0.5px, -1px); }
+
+.lec-num { font-family: 'DM Mono', monospace; font-size: 10px; color: var(--text3); min-width: 28px; }
+.lec-label { font-size: 12px; color: var(--text2); }
+.lec-item-done .lec-label { color: var(--text3); text-decoration: line-through; }
+
+/* ── OUTPUT ── */
+.output-form { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 16px; margin-bottom: 20px; }
+.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px; }
+.form-group { display: flex; flex-direction: column; gap: 5px; margin-bottom: 10px; }
+.form-label { font-family: 'DM Mono', monospace; font-size: 9px; color: var(--text3); letter-spacing: 1px; text-transform: uppercase; }
+.form-select, .form-input { font-family: 'DM Mono', monospace; font-size: 12px; padding: 9px 11px; border-radius: 7px; border: 1px solid var(--border2); background: var(--surface2); color: var(--text); outline: none; -webkit-appearance: none; width: 100%; }
+.form-select:focus, .form-input:focus { border-color: var(--accent); }
+.form-btn { width: 100%; padding: 12px; border-radius: 8px; border: 1px solid var(--accent); background: transparent; color: var(--accent); font-family: 'DM Mono', monospace; font-size: 11px; letter-spacing: 1.5px; cursor: pointer; -webkit-tap-highlight-color: transparent; transition: all 0.15s; }
+.form-btn:active { background: rgba(232,213,183,0.08); }
+
+.week-summary { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 14px 16px; margin-bottom: 20px; }
+.week-summary-title { font-family: 'DM Mono', monospace; font-size: 9px; color: var(--text3); letter-spacing: 2px; text-transform: uppercase; margin-bottom: 12px; }
+.week-row { display: flex; justify-content: space-between; align-items: center; padding: 6px 0; border-top: 1px solid var(--border); }
+.week-part { font-size: 12px; color: var(--text2); flex: 1; padding-right: 8px; }
+.week-q { font-family: 'DM Mono', monospace; font-size: 11px; color: var(--accent); white-space: nowrap; }
+
+.log-list { display: flex; flex-direction: column; gap: 8px; }
+.log-item { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 12px 14px; display: flex; align-items: flex-start; gap: 12px; }
+.log-date { font-family: 'DM Mono', monospace; font-size: 9px; color: var(--text3); white-space: nowrap; padding-top: 2px; }
+.log-body { flex: 1; }
+.log-part { font-size: 13px; color: var(--text); margin-bottom: 2px; }
+.log-q { font-family: 'DM Mono', monospace; font-size: 10px; color: var(--text3); }
+.log-del { background: none; border: none; color: var(--text3); font-size: 16px; cursor: pointer; padding: 2px 4px; flex-shrink: 0; -webkit-tap-highlight-color: transparent; }
+
+.empty-state { text-align: center; padding: 32px 0; font-family: 'DM Mono', monospace; font-size: 10px; color: var(--text3); letter-spacing: 1px; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-sys">AICPA FAR // Study Tracker</div>
+  <div class="header-row">
+    <h1>FAR 공부 기록</h1>
+    <div class="streak-box">
+      <div class="streak-num" id="streakNum">0</div>
+      <div class="streak-label">DAY STREAK</div>
+    </div>
+  </div>
+</div>
+
+<div class="tabs">
+  <button class="tab-btn active" onclick="switchTab(0)">00 대시보드</button>
+  <button class="tab-btn" onclick="switchTab(1)">01 강의 체크</button>
+  <button class="tab-btn" onclick="switchTab(2)">02 문제 기록</button>
+</div>
+
+<div class="content">
+  <div class="tab-pane active" id="tab-0">
+    <div class="stats-row" id="dashStats"></div>
+    <div class="section-label">과목별 강의 진도</div>
+    <div class="divider"></div>
+    <div id="dashProg" style="margin-bottom:24px"></div>
+    <div class="section-label">이번 주 문제 기록</div>
+    <div class="divider"></div>
+    <div id="dashWeek"></div>
+  </div>
+
+  <div class="tab-pane" id="tab-1">
+    <div id="topicGroups"></div>
+  </div>
+
+  <div class="tab-pane" id="tab-2">
+    <div class="section-label">오늘 문제 기록</div>
+    <div class="divider"></div>
+    <div class="output-form">
+      <div class="form-row">
+        <div class="form-group" style="margin-bottom:0">
+          <div class="form-label">파트 선택</div>
+          <select class="form-select" id="partSelect"></select>
+        </div>
+        <div class="form-group" style="margin-bottom:0">
+          <div class="form-label">문제 수</div>
+          <input class="form-input" type="number" id="qInput" placeholder="8" min="1" max="100" />
+        </div>
+      </div>
+      <div class="form-group" style="margin-top:10px;">
+        <div class="form-label">메모 (선택)</div>
+        <input class="form-input" type="text" id="memoInput" placeholder="예: lease classification 헷갈림" />
+      </div>
+      <button class="form-btn" onclick="addLog()">기록하기</button>
+    </div>
+
+    <div class="section-label">이번 주 요약</div>
+    <div class="divider"></div>
+    <div id="weekSummary"></div>
+
+    <div class="section-label" style="margin-top:20px;">전체 기록</div>
+    <div class="divider"></div>
+    <div class="log-list" id="logList"></div>
+  </div>
+</div>
+
+<script>
+const TOPICS = [
+  {id:'i1', group:'Inter',   title:'The concept of Financial Accounting', start:1,  end:3,  week:null},
+  {id:'i2', group:'Inter',   title:'Revenue Recognition',                  start:4,  end:8,  week:'Week5'},
+  {id:'i3', group:'Inter',   title:'Inventory',                            start:9,  end:12, week:'Week1'},
+  {id:'i4', group:'Inter',   title:'PPE & Intangible',                     start:13, end:19, week:'Week1'},
+  {id:'i5', group:'Inter',   title:'Monetary Current Asset',               start:20, end:23, week:'Week2'},
+  {id:'i6', group:'Inter',   title:'Current Liabilities',                  start:24, end:27, week:'Week2'},
+  {id:'i7', group:'Inter',   title:'Present Value ~ Lease',                start:28, end:34, week:'Week3'},
+  {id:'a1', group:'Advance', title:'Basic Concepts',                       start:1,  end:4,  week:null},
+  {id:'a2', group:'Advance', title:'Deferred Taxes',                       start:5,  end:15, week:'Week4'},
+  {id:'a3', group:'Advance', title:'Equity',                               start:16, end:28, week:'Week3'},
+  {id:'a4', group:'Advance', title:'EPS',                                  start:29, end:34, week:'Week4'},
+  {id:'a5', group:'Advance', title:'Investment',                           start:35, end:47, week:'Week4'},
+  {id:'a6', group:'Advance', title:'Accrual Basis',                        start:48, end:50, week:'Week5'},
+  {id:'a7', group:'Advance', title:'Cash Flow Statement',                  start:51, end:54, week:'Week4'},
+  {id:'a8', group:'Advance', title:'Accounting changes',                   start:55, end:58, week:'Week5'},
+  {id:'n1', group:'NFP',     title:'Governmental Accounting',              start:1,  end:3,  week:null},
+  {id:'n2', group:'NFP',     title:'Not for profit Accounting',            start:4,  end:13, week:null},
+  {id:'n3', group:'NFP',     title:'Partnership',                          start:14, end:15, week:'Week5'},
+  {id:'n4', group:'NFP',     title:'SEC Reporting',                        start:16, end:16, week:'Week5'},
+  {id:'n5', group:'NFP',     title:'Fair value measurement',               start:17, end:18, week:null},
+  {id:'n6', group:'NFP',     title:'Miscellaneous',                        start:19, end:22, week:null},
+  {id:'n7', group:'NFP',     title:'Ratio Analysis',                       start:23, end:24, week:null},
+  {id:'n8', group:'NFP',     title:'Consolidated Financial Statements',    start:25, end:36, week:'Week5'},
+];
+
+const GROUPS = [
+  {id:'Inter',   label:'Intermediate',   color:'#4A7FA5', bg:'#0A1820', border:'#1A3A50'},
+  {id:'Advance', label:'Advanced',       color:'#7A6AA0', bg:'#120E1A', border:'#2A1E3A'},
+  {id:'NFP',     label:'Non for Profit', color:'#5A8A6A', bg:'#0A180E', border:'#1A3A28'},
+];
+
+// Build per-lecture keys: "i3_9", "i3_10", etc.
+function lecKey(topicId, lecNum) { return topicId + '_' + lecNum; }
+
+function getLectures(topic) {
+  const result = [];
+  for (let i = topic.start; i <= topic.end; i++) result.push(i);
+  return result;
+}
+
+let state = { lectures: {}, logs: [] };
+try { state = JSON.parse(localStorage.getItem('aicpa_far_v2') || 'null') || { lectures: {}, logs: [] }; } catch(e) {}
+function save() { try { localStorage.setItem('aicpa_far_v2', JSON.stringify(state)); } catch(e) {} }
+
+function getTopicStatus(topic) {
+  const lecs = getLectures(topic);
+  const done = lecs.filter(n => state.lectures[lecKey(topic.id, n)]).length;
+  if (done === 0) return 'none';
+  if (done === lecs.length) return 'full';
+  return 'partial';
+}
+
+function getTotalLectures() { return TOPICS.reduce((s, t) => s + (t.end - t.start + 1), 0); }
+function getDoneLectures() {
+  return Object.values(state.lectures).filter(Boolean).length;
+}
+
+function getWeekKey() {
+  const now = new Date(); const s = new Date(now);
+  s.setDate(now.getDate() - now.getDay()); return s.toISOString().slice(0,10);
+}
+function getTodayKey() { return new Date().toISOString().slice(0,10); }
+
+function calcStreak() {
+  const dates = [...new Set(state.logs.map(l => l.date))].sort().reverse();
+  if (!dates.length) return 0;
+  let streak = 0; const now = new Date(); let check = new Date(now);
+  for (let i = 0; i < 365; i++) {
+    const key = check.toISOString().slice(0,10);
+    if (dates.includes(key)) { streak++; check.setDate(check.getDate()-1); }
+    else if (i===0) { check.setDate(check.getDate()-1); }
+    else break;
+  }
+  return streak;
+}
+
+// open state for topic dropdowns
+const openTopics = {};
+
+function switchTab(idx) {
+  document.querySelectorAll('.tab-btn').forEach((b,i) => b.classList.toggle('active', i===idx));
+  document.querySelectorAll('.tab-pane').forEach((p,i) => p.classList.toggle('active', i===idx));
+  if (idx===0) renderDash();
+  if (idx===1) renderTopics();
+  if (idx===2) renderOutput();
+}
+
+// ── DASHBOARD ──
+function renderDash() {
+  document.getElementById('streakNum').textContent = calcStreak();
+  const totalL = getTotalLectures(), doneL = getDoneLectures();
+  const totalQ = state.logs.reduce((s,l) => s+l.q, 0);
+  const weekQ  = state.logs.filter(l => l.date >= getWeekKey()).reduce((s,l) => s+l.q, 0);
+
+  document.getElementById('dashStats').innerHTML =
+    sc(Math.round(doneL/totalL*100)+'%','강의 진도') +
+    sc(totalQ,'누적 문제') + sc(weekQ,'이번주 문제');
+
+  const progEl = document.getElementById('dashProg');
+  progEl.innerHTML = '';
+  GROUPS.forEach(g => {
+    const gt = TOPICS.filter(t => t.group===g.id);
+    const total = gt.reduce((s,t) => s+(t.end-t.start+1), 0);
+    const done  = gt.reduce((s,t) => s+getLectures(t).filter(n=>state.lectures[lecKey(t.id,n)]).length, 0);
+    const pct = total ? Math.round(done/total*100) : 0;
+    progEl.innerHTML +=
+      `<div class="prog-row">
+        <div class="prog-header">
+          <span class="prog-name" style="color:${g.color}">${g.label}</span>
+          <span class="prog-pct">${done}/${total}강 · ${pct}%</span>
+        </div>
+        <div class="prog-track"><div class="prog-fill" style="width:${pct}%;background:${g.color}"></div></div>
+      </div>`;
+  });
+
+  const weekLogs = state.logs.filter(l => l.date >= getWeekKey());
+  const weekEl = document.getElementById('dashWeek');
+  if (!weekLogs.length) { weekEl.innerHTML = '<div class="empty-state">이번 주 기록 없음</div>'; return; }
+  const byPart = {};
+  weekLogs.forEach(l => { byPart[l.part] = (byPart[l.part]||0)+l.q; });
+  weekEl.innerHTML = '<div class="week-summary">' +
+    Object.entries(byPart).map(([p,q]) =>
+      `<div class="week-row"><span class="week-part">${p}</span><span class="week-q">${q}문제</span></div>`
+    ).join('') + '</div>';
+}
+function sc(n,l){ return `<div class="stat-card"><div class="stat-num">${n}</div><div class="stat-label">${l}</div></div>`; }
+
+// ── TOPICS ──
+function renderTopics() {
+  const el = document.getElementById('topicGroups');
+  el.innerHTML = '';
+
+  GROUPS.forEach(g => {
+    const gTopics = TOPICS.filter(t => t.group===g.id);
+    const totalLecs = gTopics.reduce((s,t) => s+(t.end-t.start+1), 0);
+    const doneLecs  = gTopics.reduce((s,t) => s+getLectures(t).filter(n=>state.lectures[lecKey(t.id,n)]).length, 0);
+
+    const groupDiv = document.createElement('div');
+    groupDiv.className = 'topic-group';
+    groupDiv.innerHTML =
+      `<div class="group-header" style="background:${g.bg};border:1px solid ${g.border}">
+        <div class="group-dot" style="background:${g.color}"></div>
+        <span class="group-name" style="color:${g.color}">${g.label}</span>
+        <span class="group-count">${doneLecs}/${totalLecs}강</span>
+      </div>`;
+
+    gTopics.forEach(topic => {
+      const lecs = getLectures(topic);
+      const doneLecNums = lecs.filter(n => state.lectures[lecKey(topic.id,n)]);
+      const status = getTopicStatus(topic);
+      const isOpen = !!openTopics[topic.id];
+
+      const row = document.createElement('div');
+      row.className = 'topic-row';
+
+      // Topic header
+      const header = document.createElement('div');
+      header.className = 'topic-header';
+
+      // Checkbox (toggles all lectures)
+      const chkBox = document.createElement('div');
+      chkBox.className = 'topic-check-box ' + (status==='full'?'full':status==='partial'?'partial':'');
+      chkBox.style.color = g.color;
+      chkBox.onclick = (e) => {
+        e.stopPropagation();
+        const allDone = status === 'full';
+        lecs.forEach(n => { state.lectures[lecKey(topic.id,n)] = !allDone; });
+        save(); renderTopics();
+      };
+
+      // Topic info
+      const info = document.createElement('div');
+      info.className = 'topic-info';
+      info.innerHTML =
+        `<div class="topic-title">${topic.title}</div>
+        <div class="topic-meta">
+          <span class="topic-tag"># ${topic.start}–${topic.end} · ${lecs.length}강</span>
+          ${topic.week ? `<span class="topic-tag week-tag">${topic.week}</span>` : ''}
+          <span class="topic-prog">${doneLecNums.length}/${lecs.length}</span>
+        </div>`;
+
+      // Chevron
+      const chev = document.createElement('span');
+      chev.className = 'topic-chevron' + (isOpen?' open':'');
+      chev.textContent = '▶';
+
+      header.appendChild(chkBox);
+      header.appendChild(info);
+      header.appendChild(chev);
+
+      // Toggle open on header click (not checkbox)
+      header.onclick = (e) => {
+        if (e.target === chkBox || chkBox.contains(e.target)) return;
+        openTopics[topic.id] = !openTopics[topic.id];
+        renderTopics();
+      };
+
+      // Lecture list (dropdown)
+      const lecList = document.createElement('div');
+      lecList.className = 'lecture-list' + (isOpen?' open':'');
+
+      lecs.forEach(n => {
+        const isDone = !!state.lectures[lecKey(topic.id,n)];
+        const item = document.createElement('div');
+        item.className = 'lecture-item' + (isDone?' lec-item-done':'');
+
+        const lc = document.createElement('div');
+        lc.className = 'lec-check' + (isDone?' on':'');
+        lc.style.color = g.color;
+
+        const num = document.createElement('span');
+        num.className = 'lec-num';
+        num.textContent = '#' + n;
+
+        const label = document.createElement('span');
+        label.className = 'lec-label';
+        label.textContent = topic.title + ' ' + (n - topic.start + 1) + '강';
+
+        item.appendChild(lc);
+        item.appendChild(num);
+        item.appendChild(label);
+
+        item.onclick = () => {
+          state.lectures[lecKey(topic.id, n)] = !state.lectures[lecKey(topic.id, n)];
+          save(); renderTopics();
+        };
+
+        lecList.appendChild(item);
+      });
+
+      row.appendChild(header);
+      row.appendChild(lecList);
+      groupDiv.appendChild(row);
+    });
+
+    el.appendChild(groupDiv);
+  });
+}
+
+// ── OUTPUT ──
+function buildPartOptions() {
+  const sel = document.getElementById('partSelect');
+  sel.innerHTML = '';
+  GROUPS.forEach(g => {
+    const optgroup = document.createElement('optgroup');
+    optgroup.label = g.label;
+    TOPICS.filter(t => t.group===g.id).forEach(t => {
+      const opt = document.createElement('option');
+      opt.value = t.id;
+      opt.textContent = t.title;
+      optgroup.appendChild(opt);
+    });
+    sel.appendChild(optgroup);
+  });
+}
+
+function addLog() {
+  const partId = document.getElementById('partSelect').value;
+  const q = parseInt(document.getElementById('qInput').value);
+  const memo = document.getElementById('memoInput').value.trim();
+  if (!partId || !q || q<1) return;
+  const topic = TOPICS.find(t => t.id===partId);
+  state.logs.unshift({ id: Date.now(), date: getTodayKey(), part: topic.title, partId, q, memo });
+  document.getElementById('qInput').value = '';
+  document.getElementById('memoInput').value = '';
+  save(); renderOutput();
+  document.getElementById('streakNum').textContent = calcStreak();
+}
+
+function deleteLog(id) {
+  state.logs = state.logs.filter(l => l.id!==id);
+  save(); renderOutput();
+}
+
+function renderOutput() {
+  buildPartOptions();
+  document.getElementById('streakNum').textContent = calcStreak();
+
+  const weekLogs = state.logs.filter(l => l.date >= getWeekKey());
+  const weekEl = document.getElementById('weekSummary');
+  if (!weekLogs.length) {
+    weekEl.innerHTML = '<div class="week-summary"><div class="empty-state">이번 주 기록 없음</div></div>';
+  } else {
+    const byPart = {};
+    weekLogs.forEach(l => { byPart[l.part] = (byPart[l.part]||0)+l.q; });
+    const total = weekLogs.reduce((s,l) => s+l.q, 0);
+    weekEl.innerHTML = '<div class="week-summary">' +
+      `<div class="week-summary-title">WEEKLY TOTAL — ${total}문제</div>` +
+      Object.entries(byPart).map(([p,q]) =>
+        `<div class="week-row"><span class="week-part">${p}</span><span class="week-q">${q}문제</span></div>`
+      ).join('') + '</div>';
+  }
+
+  const logEl = document.getElementById('logList');
+  if (!state.logs.length) { logEl.innerHTML = '<div class="empty-state">기록 없음</div>'; return; }
+  logEl.innerHTML = '';
+  state.logs.forEach(l => {
+    const item = document.createElement('div');
+    item.className = 'log-item';
+    item.innerHTML =
+      `<div class="log-date">${l.date.slice(5).replace('-','/')}</div>
+      <div class="log-body">
+        <div class="log-part">${l.part}</div>
+        <div class="log-q">${l.q}문제${l.memo?' · '+l.memo:''}</div>
+      </div>
+      <button class="log-del" onclick="deleteLog(${l.id})">×</button>`;
+    logEl.appendChild(item);
+  });
+}
+
+// Init
+renderDash();
+renderTopics();
+buildPartOptions();
+</script>
+</body>
+</html>

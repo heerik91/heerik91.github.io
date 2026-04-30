@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>히림의 MBA 로드맵 2025</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Spectral:wght@400;500&display=swap');
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg: #0C0C0B;
+  --border: #272725;
+  --border2: #353533;
+  --text: #D4C9B0;
+  --text2: #9A9A8A;
+  --text3: #5A5A50;
+  --accent: #E8D5B7;
+  --col-w: 110px;
+  --label-w: 76px;
+  --header-h: 48px;
+  --sub-row-h: 28px;
+  --sub-row-pad: 6px;
+}
+
+html, body { height: 100%; background: var(--bg); color: var(--text); font-family: 'Spectral', Georgia, serif; overflow: hidden; }
+
+.top { padding: 16px 18px 12px; border-bottom: 1px solid var(--border); display: flex; align-items: flex-end; justify-content: space-between; background: var(--bg); }
+.sys { font-family: 'DM Mono', monospace; font-size: 8px; letter-spacing: 2px; color: var(--text3); margin-bottom: 4px; text-transform: uppercase; }
+h1 { font-size: 16px; font-weight: 500; color: var(--accent); }
+.pct-num { font-family: 'DM Mono', monospace; font-size: 20px; font-weight: 500; color: var(--accent); line-height: 1; margin-bottom: 3px; text-align: right; }
+.pct-sub { font-family: 'DM Mono', monospace; font-size: 8px; color: var(--text3); letter-spacing: 1px; }
+
+.grid-wrap { display: flex; flex-direction: column; height: calc(100vh - 62px); }
+.header-row { display: flex; flex-shrink: 0; border-bottom: 1px solid var(--border); background: var(--bg); z-index: 10; }
+.corner { width: var(--label-w); min-width: var(--label-w); height: var(--header-h); border-right: 1px solid var(--border); flex-shrink: 0; }
+.mhs { overflow: hidden; flex: 1; }
+.mhi { display: flex; height: var(--header-h); }
+.month-cell { min-width: var(--col-w); width: var(--col-w); border-right: 1px solid var(--border); display: flex; flex-direction: column; align-items: center; justify-content: center; flex-shrink: 0; }
+.month-name { font-family: 'DM Mono', monospace; font-size: 10px; color: var(--text2); letter-spacing: 1.5px; text-transform: uppercase; }
+.month-sub { font-family: 'DM Mono', monospace; font-size: 8px; color: var(--text3); margin-top: 2px; }
+
+.body-row { display: flex; flex: 1; overflow: hidden; }
+.label-col { width: var(--label-w); min-width: var(--label-w); border-right: 1px solid var(--border); background: var(--bg); z-index: 5; flex-shrink: 0; overflow: hidden; }
+.label-cell { border-bottom: 1px solid var(--border); display: flex; align-items: center; padding: 0 10px; gap: 7px; }
+.label-dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
+.label-text { font-family: 'DM Mono', monospace; font-size: 9px; letter-spacing: 0.5px; }
+
+.cs { flex: 1; overflow-x: auto; overflow-y: hidden; -webkit-overflow-scrolling: touch; }
+.cs::-webkit-scrollbar { height: 4px; }
+.cs::-webkit-scrollbar-track { background: var(--bg); }
+.cs::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 2px; }
+
+.cg { display: flex; flex-direction: column; position: relative; }
+.crow { display: flex; border-bottom: 1px solid var(--border); position: relative; flex-shrink: 0; }
+.ccell { min-width: var(--col-w); width: var(--col-w); border-right: 1px solid var(--border); flex-shrink: 0; }
+
+.today-line { position: absolute; top: 0; bottom: 0; width: 1.5px; background: var(--accent); opacity: 0.35; z-index: 3; pointer-events: none; }
+.today-lbl { position: absolute; top: -18px; transform: translateX(-50%); font-family: 'DM Mono', monospace; font-size: 7px; color: var(--accent); opacity: 0.55; white-space: nowrap; letter-spacing: 0.5px; z-index: 4; }
+
+.chip {
+  position: absolute;
+  border-radius: 5px;
+  padding: 0 14px 0 8px;
+  cursor: pointer;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  -webkit-tap-highlight-color: transparent;
+  transition: opacity 0.15s, filter 0.15s;
+  overflow: hidden;
+  height: 24px;
+}
+.chip:active { filter: brightness(1.3); }
+.chip.done { opacity: 0.25; }
+.chip.done .chip-title { text-decoration: line-through; }
+
+.end-mark {
+  position: absolute;
+  right: -5px;
+  top: 50%;
+  transform: translateY(-50%) rotate(45deg);
+  width: 7px;
+  height: 7px;
+  border-radius: 1px;
+  opacity: 0.9;
+}
+
+.chip-check { width: 10px; height: 10px; border-radius: 50%; border: 1px solid currentColor; opacity: 0.55; flex-shrink: 0; display: flex; align-items: center; justify-content: center; }
+.chip-check.ticked { opacity: 1; background: currentColor; }
+.chip-check.ticked::after { content: ''; display: block; width: 3px; height: 5px; border: 1.5px solid #0C0C0B; border-top: none; border-left: none; transform: rotate(45deg) translate(-0.5px, -1px); }
+
+.chip-body { flex: 1; overflow: hidden; min-width: 0; }
+.chip-title { font-family: 'DM Mono', monospace; font-size: 9px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; line-height: 1; }
+
+/* ── POPUP ── */
+.overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 100; align-items: flex-end; justify-content: center; padding: 0 0 32px; }
+.overlay.open { display: flex; }
+.popup { background: #1A1A18; border: 1px solid var(--border2); border-radius: 14px; padding: 24px 22px 20px; width: calc(100% - 32px); max-width: 420px; position: relative; }
+.popup-close { position: absolute; top: 14px; right: 16px; width: 28px; height: 28px; border-radius: 50%; background: var(--border2); border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; color: var(--text2); font-size: 16px; line-height: 1; -webkit-tap-highlight-color: transparent; }
+.popup-row-type { font-family: 'DM Mono', monospace; font-size: 9px; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 8px; }
+.popup-title { font-size: 17px; font-weight: 500; color: var(--accent); margin-bottom: 6px; line-height: 1.4; padding-right: 32px; }
+.popup-dates { font-family: 'DM Mono', monospace; font-size: 10px; color: var(--text3); margin-bottom: 12px; letter-spacing: 0.5px; }
+.popup-note { font-size: 13px; color: var(--text2); line-height: 1.7; margin-bottom: 18px; font-style: italic; min-height: 20px; }
+.popup-btn { width: 100%; padding: 13px; border-radius: 10px; border: 1px solid var(--border2); background: transparent; font-family: 'DM Mono', monospace; font-size: 11px; letter-spacing: 1px; cursor: pointer; -webkit-tap-highlight-color: transparent; transition: all 0.15s; }
+.popup-btn.mark-done { color: var(--accent); border-color: var(--accent); opacity: 0.7; }
+.popup-btn.mark-done:active { opacity: 1; background: rgba(232,213,183,0.08); }
+.popup-btn.mark-undone { color: var(--text3); border-color: var(--border2); }
+.popup-btn.mark-undone:active { background: var(--border); }
+</style>
+</head>
+<body>
+
+<div class="top">
+  <div>
+    <div class="sys">Personal Roadmap // 2025</div>
+    <h1>히림의 MBA 로드맵</h1>
+  </div>
+  <div>
+    <div class="pct-num" id="pct">0%</div>
+    <div class="pct-sub" id="pctSub">0 / 0 완료</div>
+  </div>
+</div>
+
+<div class="grid-wrap">
+  <div class="header-row">
+    <div class="corner"></div>
+    <div class="mhs" id="mhs"><div class="mhi" id="mhi"></div></div>
+  </div>
+  <div class="body-row">
+    <div class="label-col" id="lc"></div>
+    <div class="cs" id="cs"><div class="cg" id="cg"></div></div>
+  </div>
+</div>
+
+<div class="overlay" id="overlay" onclick="closePopup(event)">
+  <div class="popup" id="popup">
+    <button class="popup-close" onclick="closeOverlay()">×</button>
+    <div class="popup-row-type" id="popType"></div>
+    <div class="popup-title" id="popTitle"></div>
+    <div class="popup-dates" id="popDates"></div>
+    <div class="popup-note" id="popNote"></div>
+    <button class="popup-btn" id="popBtn" onclick="toggleFromPopup()"></button>
+  </div>
+</div>
+
+<script>
+const MONTHS = [
+  {n:'MAY',idx:4},{n:'JUN',idx:5},{n:'JUL',idx:6},{n:'AUG',idx:7},
+  {n:'SEP',idx:8},{n:'OCT',idx:9},{n:'NOV',idx:10},{n:'DEC',idx:11}
+];
+const MONTH_NAMES = ['1월','2월','3월','4월','5월','6월','7월','8월','9월','10월','11월','12월'];
+
+const ROWS = [
+  {id:'gmat',  label:'GMAT',  color:'#4A7FA5', bg:'#0A1820'},
+  {id:'toefl', label:'TOEFL', color:'#5A8A6A', bg:'#0A180E'},
+  {id:'far',   label:'FAR',   color:'#C4873A', bg:'#1E1208'},
+  {id:'bar',   label:'BAR',   color:'#A06060', bg:'#1A0E0E'},
+  {id:'aud',   label:'AUD',   color:'#8A70A0', bg:'#140E1C'},
+  {id:'task',  label:'할 일',  color:'#8A8070', bg:'#141210'},
+];
+
+const EVENTS = [
+  {id:'gmat1',  row:'gmat',  sm:4,sd:30, em:5, ed:18, title:'GMAT 1차',         note:'결과 확인 후 8월·9월 추가 등록 여부 결정'},
+  {id:'gmat2',  row:'gmat',  sm:6,sd:19, em:7, ed:17, title:'GMAT 2차',         note:'시험 직후 LA·샌프란 숙소 예약'},
+  {id:'gmat3',  row:'gmat',  sm:7,sd:18, em:8, ed:11, title:'GMAT 3차',         note:'최종 스코어 확정 — 동부 학교 투어와 병행'},
+  {id:'toefl1', row:'toefl', sm:5,sd:19, em:6, ed:19, title:'TOEFL 1차',        note:''},
+  {id:'toefl2', row:'toefl', sm:11,sd:1, em:11,ed:15, title:'TOEFL 예비',       note:'목표 점수 미달 시에만'},
+  {id:'far',    row:'far',   sm:4,sd:1,  em:4, ed:29, title:'FAR 시험',         note:'시험 직후 AUD 등록(LA) 즉시 진행'},
+  {id:'bar',    row:'bar',   sm:4,sd:29, em:9, ed:21, title:'BAR 준비 → 시험',  note:'FAR 종료 후 시작 / 10월 마지막주 시험'},
+  {id:'aud',    row:'aud',   sm:4,sd:29, em:10,ed:25, title:'AUD 준비 → 시험',  note:'FAR 종료 후 시작 / 시험 장소: LA'},
+  {id:'t_lv',   row:'task',  em:4, ed:1,  title:'라스베가스 숙소 예약',  note:'11월 20일 in, 22일 out / 포르투갈 숙소도 함께'},
+  {id:'t_aud',  row:'task',  em:4, ed:29, title:'AUD 시험 등록 (LA)',   note:'FAR 시험 당일 직후'},
+  {id:'t_nyc',  row:'task',  em:5, ed:3,  title:'뉴욕 숙소 예약',       note:''},
+  {id:'t_port', row:'task',  em:6, ed:20, title:'포르투갈 여행 계획',   note:'9월 동부 학교 투어 위한 재학생·동문 커피챗 예약 시작'},
+  {id:'t_west', row:'task',  em:7, ed:18, title:'LA·샌프란 숙소 예약',  note:'GMAT 2차 직후'},
+  {id:'t_tour', row:'task',  em:8, ed:15, title:'동부 학교 투어',       note:'MIT Sloan · Wharton · Booth — 커피챗 미팅'},
+];
+
+const COL_W = 110;
+const MIN_W = 32;
+const CHIP_H = 24;
+const SUB_PAD = 5; // padding between sub-rows
+const ROW_V_PAD = 8; // top/bottom padding within a row
+
+let done = {};
+try { done = JSON.parse(localStorage.getItem('mba_v4') || '{}'); } catch(e) {}
+function save() { try { localStorage.setItem('mba_v4', JSON.stringify(done)); } catch(e) {} }
+
+function daysInMonth(m) { return new Date(2025, m + 1, 0).getDate(); }
+function frac(m, d) { return (d - 1) / daysInMonth(m); }
+function colOf(m) { return MONTHS.findIndex(x => x.idx === m); }
+function toX(m, d) { const c = colOf(m); return c < 0 ? -9999 : c * COL_W + frac(m, d) * COL_W; }
+function dateStr(m, d) { return MONTH_NAMES[m] + ' ' + d + '일'; }
+
+// Collision detection: assign each chip to a sub-row (lane)
+// Returns array of {ev, startX, endX, lane}
+function assignLanes(events) {
+  const placed = [];
+  const laneEnds = []; // rightmost endX per lane
+
+  events.forEach(ev => {
+    const endX = toX(ev.em, ev.ed);
+    if (endX < -999) return;
+    const startX = (ev.sm !== undefined) ? toX(ev.sm, ev.sd) : (endX - MIN_W);
+    const chipW = Math.max(MIN_W, endX - startX);
+    const realEndX = startX + chipW + 8; // small gap
+
+    // find first available lane
+    let lane = 0;
+    while (laneEnds[lane] !== undefined && laneEnds[lane] > startX) {
+      lane++;
+    }
+    laneEnds[lane] = realEndX;
+    placed.push({ ev, startX, chipW, lane });
+  });
+
+  return placed;
+}
+
+let currentPopupId = null;
+
+function openPopup(ev, row) {
+  currentPopupId = ev.id;
+  const isDone = !!done[ev.id];
+  document.getElementById('popType').textContent = row.label;
+  document.getElementById('popType').style.color = row.color;
+  document.getElementById('popTitle').textContent = ev.title;
+  let datesText = ev.sm !== undefined
+    ? dateStr(ev.sm, ev.sd) + ' → ' + dateStr(ev.em, ev.ed)
+    : '마감: ' + dateStr(ev.em, ev.ed);
+  document.getElementById('popDates').textContent = datesText;
+  document.getElementById('popNote').textContent = ev.note || '';
+  const btn = document.getElementById('popBtn');
+  if (isDone) {
+    btn.textContent = '✓ 완료됨 — 취소하기';
+    btn.className = 'popup-btn mark-undone';
+  } else {
+    btn.textContent = '완료로 표시하기';
+    btn.className = 'popup-btn mark-done';
+  }
+  document.getElementById('overlay').classList.add('open');
+}
+
+function closeOverlay() {
+  document.getElementById('overlay').classList.remove('open');
+  currentPopupId = null;
+}
+
+function closePopup(e) {
+  if (e.target === document.getElementById('overlay')) closeOverlay();
+}
+
+function toggleFromPopup() {
+  if (!currentPopupId) return;
+  done[currentPopupId] = !done[currentPopupId];
+  save();
+  closeOverlay();
+  build();
+}
+
+function build() {
+  const mhi = document.getElementById('mhi');
+  mhi.innerHTML = '';
+  mhi.style.width = (MONTHS.length * COL_W) + 'px';
+  MONTHS.forEach(m => {
+    const c = document.createElement('div');
+    c.className = 'month-cell';
+    c.innerHTML = '<div class="month-name">'+m.n+'</div><div class="month-sub">2025</div>';
+    mhi.appendChild(c);
+  });
+
+  const lcEl = document.getElementById('lc');
+  lcEl.innerHTML = '';
+
+  const cg = document.getElementById('cg');
+  cg.innerHTML = '';
+  cg.style.width = (MONTHS.length * COL_W) + 'px';
+
+  // TODAY line — placed before rows, spans full height
+  const now = new Date();
+  const tci = colOf(now.getMonth());
+  if (tci >= 0) {
+    const tx = tci * COL_W + frac(now.getMonth(), now.getDate()) * COL_W;
+    const tlbl = document.createElement('div'); tlbl.className = 'today-lbl'; tlbl.style.left = tx + 'px'; tlbl.textContent = 'TODAY';
+    const tl = document.createElement('div'); tl.className = 'today-line'; tl.style.left = tx + 'px';
+    cg.appendChild(tlbl); cg.appendChild(tl);
+  }
+
+  ROWS.forEach(row => {
+    const rowEvents = EVENTS.filter(e => e.row === row.id);
+    const placed = assignLanes(rowEvents);
+    const numLanes = placed.length ? Math.max(...placed.map(p => p.lane)) + 1 : 1;
+    const rowH = ROW_V_PAD * 2 + numLanes * CHIP_H + (numLanes - 1) * SUB_PAD;
+
+    // Label cell
+    const lc = document.createElement('div');
+    lc.className = 'label-cell';
+    lc.style.height = rowH + 'px';
+    lc.innerHTML = '<div class="label-dot" style="background:'+row.color+'"></div><div class="label-text" style="color:'+row.color+'">'+row.label+'</div>';
+    lcEl.appendChild(lc);
+
+    // Content row
+    const rowEl = document.createElement('div');
+    rowEl.className = 'crow';
+    rowEl.style.height = rowH + 'px';
+
+    MONTHS.forEach((m, mi) => {
+      const cell = document.createElement('div');
+      cell.className = 'ccell';
+      cell.style.height = rowH + 'px';
+      if (mi % 2 === 1) cell.style.background = 'rgba(255,255,255,0.012)';
+      rowEl.appendChild(cell);
+    });
+
+    placed.forEach(({ ev, startX, chipW, lane }) => {
+      const isDone = !!done[ev.id];
+      const topY = ROW_V_PAD + lane * (CHIP_H + SUB_PAD);
+
+      const chip = document.createElement('div');
+      chip.className = 'chip' + (isDone ? ' done' : '');
+      chip.style.cssText =
+        'left:'+startX+'px;width:'+chipW+'px;top:'+topY+'px;' +
+        'background:'+row.bg+';border:1px solid '+row.color+'55;color:'+row.color+';';
+
+      const mark = document.createElement('div');
+      mark.className = 'end-mark';
+      mark.style.background = row.color;
+
+      const chk = document.createElement('div');
+      chk.className = 'chip-check' + (isDone ? ' ticked' : '');
+
+      const body = document.createElement('div');
+      body.className = 'chip-body';
+      body.innerHTML = '<div class="chip-title">'+ev.title+'</div>';
+
+      chip.appendChild(chk);
+      chip.appendChild(body);
+      chip.appendChild(mark);
+      chip.onclick = () => openPopup(ev, row);
+      rowEl.appendChild(chip);
+    });
+
+    cg.appendChild(rowEl);
+  });
+
+  const cs = document.getElementById('cs');
+  const mhs = document.getElementById('mhs');
+  cs.onscroll = () => { mhs.scrollLeft = cs.scrollLeft; };
+
+  const total = EVENTS.length;
+  const cnt = Object.values(done).filter(Boolean).length;
+  document.getElementById('pct').textContent = (total ? Math.round(cnt/total*100) : 0) + '%';
+  document.getElementById('pctSub').textContent = cnt + ' / ' + total + ' 완료';
+}
+
+build();
+</script>
+</body>
+</html>
