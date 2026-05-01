@@ -443,7 +443,7 @@
     </div>
   </div>
 
-  <div class="section-label">오늘 체크</div>
+  <div class="section-label" id="checkDateLabel">오늘 체크</div>
 
   <div class="check-card">
     <div class="check-header">
@@ -528,6 +528,16 @@ function saveState() {
   try { localStorage.setItem('gmat_tracker_v3', JSON.stringify(state)); } catch(e) {}
 }
 
+// selectedDate: 현재 체크 중인 날짜 (기본값: 오늘)
+let selectedDate = todayKey;
+
+function updateCheckHeader() {
+  const el = document.getElementById('checkDateLabel');
+  if (el) {
+    el.textContent = selectedDate === todayKey ? '오늘 체크' : selectedDate.slice(5).replace('-', '/') + ' 체크';
+  }
+}
+
 function buildGrid() {
   const grid = document.getElementById('dayGrid');
   grid.innerHTML = '';
@@ -540,13 +550,26 @@ function buildGrid() {
     d.setDate(d.getDate() + i);
     const key = getKey(d);
     const isToday = key === todayKey;
+    const isSelected = key === selectedDate;
     const isFuture = d > now;
     const dayData = state.days[key] || {};
     if (dayData.am) amCount++;
     if (dayData.pm) pmCount++;
 
     const cell = document.createElement('div');
-    cell.className = 'day-cell' + (isToday ? ' today' : '') + (isFuture && !isToday ? ' future' : '');
+    cell.className = 'day-cell'
+      + (isToday ? ' today' : '')
+      + (isFuture && !isToday ? ' future' : '')
+      + (isSelected ? ' selected' : '');
+
+    cell.onclick = () => {
+      if (!isFuture || isToday) {
+        selectedDate = key;
+        buildGrid();
+        restoreChecks();
+        updateCheckHeader();
+      }
+    };
 
     const num = document.createElement('div');
     num.className = 'day-num';
@@ -572,8 +595,8 @@ function buildGrid() {
 }
 
 function toggleCheck(id, type) {
-  if (!state.todayChecks[todayKey]) state.todayChecks[todayKey] = {};
-  const checks = state.todayChecks[todayKey];
+  if (!state.todayChecks[selectedDate]) state.todayChecks[selectedDate] = {};
+  const checks = state.todayChecks[selectedDate];
   checks[id] = !checks[id];
 
   const box = document.getElementById('box-' + id);
@@ -588,15 +611,23 @@ function toggleCheck(id, type) {
 
   const amDone = !!(checks['am1'] && checks['am2']);
   const pmDone = !!(checks['pm1'] && checks['pm2']);
-  if (!state.days[todayKey]) state.days[todayKey] = {};
-  state.days[todayKey].am = amDone;
-  state.days[todayKey].pm = pmDone;
+  if (!state.days[selectedDate]) state.days[selectedDate] = {};
+  state.days[selectedDate].am = amDone;
+  state.days[selectedDate].pm = pmDone;
   saveState();
   buildGrid();
 }
 
 function restoreChecks() {
-  const checks = state.todayChecks[todayKey] || {};
+  // 먼저 모든 체크 초기화
+  ['am1','am2','pm1','pm2'].forEach(id => {
+    const box = document.getElementById('box-' + id);
+    const item = document.getElementById(id);
+    if (box) { box.className = 'check-box'; }
+    if (item) { item.classList.remove('check-done'); }
+  });
+
+  const checks = state.todayChecks[selectedDate] || {};
   ['am1','am2'].forEach(id => {
     if (checks[id]) {
       document.getElementById('box-' + id).classList.add('checked-am');
@@ -664,6 +695,7 @@ document.getElementById('vaultInput').addEventListener('keydown', e => {
 buildGrid();
 restoreChecks();
 renderVault();
+updateCheckHeader();
 </script>
 </body>
 </html>
