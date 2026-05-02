@@ -686,17 +686,5 @@ loadAicpa();
 updateOverall();
 </script>
 
-<div id="debugArea" style="position:fixed;bottom:80px;left:16px;z-index:999;">
-  <button onclick="
-    const d = localStorage.getItem('gmat_tracker_v3');
-    const parsed = d ? JSON.parse(d) : null;
-    const days = parsed ? JSON.stringify(parsed.days, null, 2) : 'null';
-    document.getElementById('debugOut').textContent = days;
-    document.getElementById('debugOut').style.display='block';
-  " style="font-family:monospace;font-size:10px;padding:6px 10px;background:#1A1A18;border:1px solid #C8A96E;color:#C8A96E;border-radius:4px;cursor:pointer;">
-    DEBUG
-  </button>
-  <pre id="debugOut" style="display:none;background:#1A1A18;border:1px solid #353533;color:#D4C9B0;font-size:10px;padding:10px;max-width:300px;max-height:200px;overflow:auto;border-radius:4px;margin-top:6px;"></pre>
-</div>
 </body>
 </html>
