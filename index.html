@@ -620,8 +620,9 @@ function loadGmat() {
     for (let i = 0; i < 30; i++) {
       const d = new Date(now); d.setDate(d.getDate()-i);
       const k = d.toISOString().slice(0,10);
-      if (days[k] && (days[k].am || days[k].pm)) streak++;
-      else if (i>0) break;
+      if (days[k] && (days[k].am || days[k].pm)) { streak++; }
+      else if (i === 0) { continue; }
+      else { break; }
     }
 
     document.getElementById('gmatChecks').innerHTML =
