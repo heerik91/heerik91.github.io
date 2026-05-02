@@ -625,14 +625,19 @@ function loadGmat() {
       else { break; }
     }
 
+    // 총 완료 횟수
+    const amTotal = Object.values(days).filter(d => d.am).length;
+    const pmTotal = Object.values(days).filter(d => d.pm).length;
+
     document.getElementById('gmatChecks').innerHTML =
       '<div class="tc-check-row"><div class="tc-dot'+(amDone?' done':'')+'"></div><span>아침 Economist</span></div>' +
       '<div class="tc-check-row"><div class="tc-dot'+(pmDone?' done':'')+'"></div><span>저녁 7문제</span></div>';
-    document.getElementById('gmatStreak').textContent = streak+' day streak';
+    document.getElementById('gmatStreak').textContent = '아침 '+amTotal+' · 저녁 '+pmTotal;
   } catch(e) {
     document.getElementById('gmatChecks').innerHTML =
       '<div class="tc-check-row"><div class="tc-dot"></div><span>아침 Economist</span></div>' +
       '<div class="tc-check-row"><div class="tc-dot"></div><span>저녁 7문제</span></div>';
+    document.getElementById('gmatStreak').textContent = '아침 0 · 저녁 0';
   }
 }
 
