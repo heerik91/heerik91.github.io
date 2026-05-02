@@ -78,7 +78,6 @@
     margin-bottom: 12px;
   }
 
-  /* Calendar grid */
   .week-labels {
     display: grid;
     grid-template-columns: 1fr 1fr;
@@ -112,6 +111,9 @@
     justify-content: center;
     padding: 2px;
     transition: border-color 0.15s;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+    user-select: none;
   }
 
   .day-cell .day-num {
@@ -155,7 +157,21 @@
     opacity: 0.3;
   }
 
-  /* Stats */
+  .day-cell.future {
+    cursor: default;
+  }
+
+  .day-cell.selected {
+    border-color: var(--accent) !important;
+    border-width: 2px !important;
+    background: var(--surface2);
+  }
+
+  .day-cell.selected .day-num {
+    color: var(--accent);
+    font-weight: 600;
+  }
+
   .stats-row {
     display: grid;
     grid-template-columns: 1fr 1fr;
@@ -186,7 +202,6 @@
     letter-spacing: 1px;
   }
 
-  /* Check cards */
   .check-card {
     background: var(--surface);
     border: 1px solid var(--border);
@@ -292,7 +307,6 @@
     text-decoration: line-through;
   }
 
-  /* Rule box */
   .rule-box {
     background: var(--surface);
     border-radius: 0 8px 8px 0;
@@ -308,7 +322,6 @@
 
   .rule-box strong { color: var(--accent); font-weight: 500; }
 
-  /* Vault */
   .vault-card {
     background: var(--surface);
     border: 1px solid var(--border);
@@ -509,6 +522,17 @@
 
 </div>
 
+<a href="index.html" style="
+  position: fixed; bottom: 24px; right: 24px;
+  width: 48px; height: 48px; border-radius: 50%;
+  background: #1A1A18; border: 1px solid #353533;
+  display: flex; align-items: center; justify-content: center;
+  font-family: monospace; font-size: 18px; color: #C8A96E;
+  text-decoration: none; z-index: 50;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.4);
+  -webkit-tap-highlight-color: transparent;
+" title="대시보드로">⌂</a>
+
 <script>
 const START_DATE = new Date(2026, 3, 30);
 
@@ -521,14 +545,20 @@ const todayKey = getKey(new Date());
 let state = { days: {}, vault: [], todayChecks: {} };
 try {
   const saved = localStorage.getItem('gmat_tracker_v3');
-  if (saved) state = JSON.parse(saved);
+  if (saved) {
+    const parsed = JSON.parse(saved);
+    // 2025년 데이터 정리
+    if (parsed.days) Object.keys(parsed.days).forEach(k => { if (k.startsWith('2025-')) delete parsed.days[k]; });
+    if (parsed.todayChecks) Object.keys(parsed.todayChecks).forEach(k => { if (k.startsWith('2025-')) delete parsed.todayChecks[k]; });
+    state = parsed;
+    localStorage.setItem('gmat_tracker_v3', JSON.stringify(state));
+  }
 } catch(e) {}
 
 function saveState() {
   try { localStorage.setItem('gmat_tracker_v3', JSON.stringify(state)); } catch(e) {}
 }
 
-// selectedDate: 현재 체크 중인 날짜 (기본값: 오늘)
 let selectedDate = todayKey;
 
 function updateCheckHeader() {
@@ -543,7 +573,7 @@ function buildGrid() {
   grid.innerHTML = '';
   let amCount = 0, pmCount = 0;
   const now = new Date();
-  now.setHours(0,0,0,0);
+  now.setHours(0, 0, 0, 0);
 
   for (let i = 0; i < 14; i++) {
     const d = new Date(START_DATE);
@@ -553,6 +583,7 @@ function buildGrid() {
     const isSelected = key === selectedDate;
     const isFuture = d > now;
     const dayData = state.days[key] || {};
+
     if (dayData.am) amCount++;
     if (dayData.pm) pmCount++;
 
@@ -562,14 +593,17 @@ function buildGrid() {
       + (isFuture && !isToday ? ' future' : '')
       + (isSelected ? ' selected' : '');
 
-    cell.onclick = () => {
-      if (!isFuture || isToday) {
-        selectedDate = key;
-        buildGrid();
-        restoreChecks();
-        updateCheckHeader();
-      }
-    };
+    // 클로저로 key 캡처 — 이게 핵심 수정사항
+    if (!isFuture || isToday) {
+      cell.addEventListener('click', (function(capturedKey) {
+        return function() {
+          selectedDate = capturedKey;
+          buildGrid();
+          restoreChecks();
+          updateCheckHeader();
+        };
+      }(key)));
+    }
 
     const num = document.createElement('div');
     num.className = 'day-num';
@@ -619,22 +653,21 @@ function toggleCheck(id, type) {
 }
 
 function restoreChecks() {
-  // 먼저 모든 체크 초기화
-  ['am1','am2','pm1','pm2'].forEach(id => {
+  ['am1','am2','pm1','pm2'].forEach(function(id) {
     const box = document.getElementById('box-' + id);
     const item = document.getElementById(id);
-    if (box) { box.className = 'check-box'; }
-    if (item) { item.classList.remove('check-done'); }
+    if (box) box.className = 'check-box';
+    if (item) item.classList.remove('check-done');
   });
 
-  const checks = state.todayChecks[selectedDate] || {};
-  ['am1','am2'].forEach(id => {
+  const checks = (state.todayChecks || {})[selectedDate] || {};
+  ['am1','am2'].forEach(function(id) {
     if (checks[id]) {
       document.getElementById('box-' + id).classList.add('checked-am');
       document.getElementById(id).classList.add('check-done');
     }
   });
-  ['pm1','pm2'].forEach(id => {
+  ['pm1','pm2'].forEach(function(id) {
     if (checks[id]) {
       document.getElementById('box-' + id).classList.add('checked-pm');
       document.getElementById(id).classList.add('check-done');
@@ -653,7 +686,7 @@ function addVault() {
 }
 
 function deleteVault(id) {
-  state.vault = state.vault.filter(v => v.id !== id);
+  state.vault = state.vault.filter(function(v) { return v.id !== id; });
   saveState();
   renderVault();
 }
@@ -667,7 +700,7 @@ function renderVault() {
     return;
   }
   list.innerHTML = '';
-  state.vault.slice().reverse().forEach(v => {
+  state.vault.slice().reverse().forEach(function(v) {
     const row = document.createElement('div');
     row.className = 'vault-item';
     const left = document.createElement('div');
@@ -681,50 +714,21 @@ function renderVault() {
     const del = document.createElement('button');
     del.className = 'vault-del';
     del.textContent = '×';
-    del.onclick = () => deleteVault(v.id);
+    del.onclick = function() { deleteVault(v.id); };
     row.appendChild(left);
     row.appendChild(del);
     list.appendChild(row);
   });
 }
 
-document.getElementById('vaultInput').addEventListener('keydown', e => {
+document.getElementById('vaultInput').addEventListener('keydown', function(e) {
   if (e.key === 'Enter') addVault();
 });
-
-// Clean up 2025 year data
-(function() {
-  try {
-    const s = JSON.parse(localStorage.getItem('gmat_tracker_v3') || '{}');
-    if (s.days) {
-      Object.keys(s.days).forEach(k => {
-        if (k.startsWith('2025-')) delete s.days[k];
-      });
-    }
-    if (s.todayChecks) {
-      Object.keys(s.todayChecks).forEach(k => {
-        if (k.startsWith('2025-')) delete s.todayChecks[k];
-      });
-    }
-    localStorage.setItem('gmat_tracker_v3', JSON.stringify(s));
-    state = s;
-  } catch(e) {}
-})();
 
 buildGrid();
 restoreChecks();
 renderVault();
 updateCheckHeader();
 </script>
-<a href="index.html" style="
-  position: fixed; bottom: 24px; right: 24px;
-  width: 48px; height: 48px; border-radius: 50%;
-  background: #1A1A18; border: 1px solid #353533;
-  display: flex; align-items: center; justify-content: center;
-  font-family: monospace; font-size: 18px; color: #C8A96E;
-  text-decoration: none; z-index: 50;
-  box-shadow: 0 4px 16px rgba(0,0,0,0.4);
-  -webkit-tap-highlight-color: transparent;
-" title="대시보드로">⌂</a>
 </body>
 </html>
