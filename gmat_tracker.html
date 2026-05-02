@@ -418,7 +418,7 @@
 <body>
 
 <div class="header">
-  <div class="header-sys">GMAT ROUTINE TRACKER // APR 30 — MAY 13</div>
+  <div class="header-sys">GMAT ROUTINE TRACKER // APR 30 — MAY 13 2026</div>
   <h1>2주 루틴 트래커</h1>
   <div class="header-sub">FAR 합격 전까지의 GMAT 유지 모드</div>
 </div>
@@ -510,7 +510,7 @@
 </div>
 
 <script>
-const START_DATE = new Date(2025, 3, 30);
+const START_DATE = new Date(2026, 3, 30);
 
 function getKey(d) {
   return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
@@ -691,6 +691,25 @@ function renderVault() {
 document.getElementById('vaultInput').addEventListener('keydown', e => {
   if (e.key === 'Enter') addVault();
 });
+
+// Clean up 2025 year data
+(function() {
+  try {
+    const s = JSON.parse(localStorage.getItem('gmat_tracker_v3') || '{}');
+    if (s.days) {
+      Object.keys(s.days).forEach(k => {
+        if (k.startsWith('2025-')) delete s.days[k];
+      });
+    }
+    if (s.todayChecks) {
+      Object.keys(s.todayChecks).forEach(k => {
+        if (k.startsWith('2025-')) delete s.todayChecks[k];
+      });
+    }
+    localStorage.setItem('gmat_tracker_v3', JSON.stringify(s));
+    state = s;
+  } catch(e) {}
+})();
 
 buildGrid();
 restoreChecks();
