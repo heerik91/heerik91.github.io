@@ -32,6 +32,30 @@ h1 { font-size: 16px; font-weight: 500; color: var(--accent); }
 .pct-num { font-family: 'DM Mono', monospace; font-size: 20px; font-weight: 500; color: var(--accent); line-height: 1; margin-bottom: 3px; text-align: right; }
 .pct-sub { font-family: 'DM Mono', monospace; font-size: 8px; color: var(--text3); letter-spacing: 1px; }
 
+.edit-btn { font-family: 'DM Mono', monospace; font-size: 10px; letter-spacing: 1px; padding: 6px 14px; border-radius: 4px; border: 1px solid var(--border2); background: transparent; color: var(--text3); cursor: pointer; -webkit-tap-highlight-color: transparent; transition: all 0.15s; margin-top: 6px; }
+.edit-btn.active { border-color: var(--accent); color: var(--accent); }
+
+/* Edit popup */
+.edit-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 200; align-items: flex-end; justify-content: center; padding: 0 0 32px; }
+.edit-overlay.open { display: flex; }
+.edit-popup { background: #1A1A18; border: 1px solid var(--border2); border-radius: 12px; padding: 22px 20px 18px; width: calc(100% - 32px); max-width: 400px; position: relative; }
+.edit-popup-close { position: absolute; top: 12px; right: 14px; width: 26px; height: 26px; border-radius: 50%; background: var(--border2); border: none; cursor: pointer; color: var(--text2); font-size: 15px; -webkit-tap-highlight-color: transparent; }
+.edit-popup-type { font-family: 'DM Mono', monospace; font-size: 8px; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 7px; }
+.edit-popup-title { font-size: 15px; font-weight: 500; color: var(--accent); margin-bottom: 14px; padding-right: 28px; line-height: 1.4; }
+.edit-field { margin-bottom: 12px; }
+.edit-label { font-family: 'DM Mono', monospace; font-size: 9px; color: var(--text3); letter-spacing: 1px; text-transform: uppercase; margin-bottom: 5px; }
+.edit-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.edit-select { font-family: 'DM Mono', monospace; font-size: 12px; padding: 8px 10px; border-radius: 6px; border: 1px solid var(--border2); background: #111110; color: var(--text); outline: none; width: 100%; -webkit-appearance: none; }
+.edit-save-btn { width: 100%; padding: 12px; border-radius: 8px; border: 1px solid var(--accent); background: transparent; color: var(--accent); font-family: 'DM Mono', monospace; font-size: 10px; letter-spacing: 1px; cursor: pointer; -webkit-tap-highlight-color: transparent; margin-top: 4px; }
+.edit-save-btn:active { background: rgba(232,213,183,0.08); }
+.edit-del-btn { width: 100%; padding: 12px; border-radius: 8px; border: 1px solid #A06060; background: transparent; color: #A06060; font-family: 'DM Mono', monospace; font-size: 10px; letter-spacing: 1px; cursor: pointer; -webkit-tap-highlight-color: transparent; margin-top: 6px; }
+.edit-del-btn:active { background: rgba(160,96,96,0.08); }
+.add-btn { font-family: 'DM Mono', monospace; font-size: 10px; letter-spacing: 1px; padding: 6px 14px; border-radius: 4px; border: 1px solid #5A8A6A; background: transparent; color: #5A8A6A; cursor: pointer; -webkit-tap-highlight-color: transparent; margin-top: 6px; }
+.edit-btn-row { display: flex; gap: 6px; justify-content: flex-end; }
+
+.chip.edit-mode { cursor: pointer; }
+.chip.edit-mode::before { content: '✏'; position: absolute; top: 2px; right: 14px; font-size: 8px; opacity: 0.6; }
+
 .grid-wrap { display: flex; flex-direction: column; height: calc(100vh - 62px); }
 .header-row { display: flex; flex-shrink: 0; border-bottom: 1px solid var(--border); background: var(--bg); z-index: 10; }
 .corner { width: var(--label-w); min-width: var(--label-w); height: var(--header-h); border-right: 1px solid var(--border); flex-shrink: 0; }
@@ -118,10 +142,16 @@ h1 { font-size: 16px; font-weight: 500; color: var(--accent); }
     <div class="sys">Personal Roadmap // 2025</div>
     <h1>히림의 MBA 로드맵</h1>
   </div>
-  <div>
-    <div class="pct-num" id="pct">0%</div>
-    <div class="pct-sub" id="pctSub">0 / 0 완료</div>
+  <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;">
+    <div>
+      <div class="pct-num" id="pct">0%</div>
+      <div class="pct-sub" id="pctSub">0 / 0 완료</div>
+    </div>
+    <div class="edit-btn-row" id="editBtnRow">
+      <button class="edit-btn" id="editBtn" onclick="toggleEditMode()">편집</button>
+    </div>
   </div>
+
 </div>
 
 <div class="grid-wrap">
@@ -290,7 +320,7 @@ function build() {
   }
 
   ROWS.forEach(row => {
-    const rowEvents = EVENTS.filter(e => e.row === row.id);
+    const allEvents = getEvents(); const rowEvents = allEvents.filter(e => e.row === row.id);
     const placed = assignLanes(rowEvents);
     const numLanes = placed.length ? Math.max(...placed.map(p => p.lane)) + 1 : 1;
     const rowH = ROW_V_PAD * 2 + numLanes * CHIP_H + (numLanes - 1) * SUB_PAD;
@@ -339,7 +369,7 @@ function build() {
       chip.appendChild(chk);
       chip.appendChild(body);
       chip.appendChild(mark);
-      chip.onclick = () => openPopup(ev, row);
+      chip.onclick = () => editMode ? openEditPopup(ev, row) : openPopup(ev, row);
       rowEl.appendChild(chip);
     });
 
@@ -356,8 +386,265 @@ function build() {
   document.getElementById('pctSub').textContent = cnt + ' / ' + total + ' 완료';
 }
 
+// ── EDIT MODE ──
+let editMode = false;
+let customEvents = {};
+try { customEvents = JSON.parse(localStorage.getItem('mba_events_v1') || '{}'); } catch(e) {}
+function saveCustomEvents() { try { localStorage.setItem('mba_events_v1', JSON.stringify(customEvents)); } catch(e) {} }
+
+// Apply custom dates on top of defaults
+function getEvents() {
+  const result = EVENTS
+    .filter(ev => {
+      const c = customEvents[ev.id];
+      return !(c && c._deleted);
+    })
+    .map(ev => {
+      const custom = customEvents[ev.id];
+      if (custom) return Object.assign({}, ev, custom);
+      return ev;
+    });
+  // Add custom new events
+  Object.entries(customEvents).forEach(([id, ev]) => {
+    if (id.startsWith('custom_') && ev._isNew) {
+      result.push(ev);
+    }
+  });
+  return result;
+}
+
+function toggleEditMode() {
+  editMode = !editMode;
+  const btn = document.getElementById('editBtn');
+  btn.classList.toggle('active', editMode);
+  btn.textContent = editMode ? '완료' : '편집';
+  const row = document.getElementById('editBtnRow');
+  if (editMode) {
+    if (!document.getElementById('addEventBtn')) {
+      const addBtn = document.createElement('button');
+      addBtn.className = 'add-btn';
+      addBtn.id = 'addEventBtn';
+      addBtn.textContent = '+ 추가';
+      addBtn.onclick = openAddPopup;
+      row.insertBefore(addBtn, btn);
+    }
+  } else {
+    const addBtn = document.getElementById('addEventBtn');
+    if (addBtn) addBtn.remove();
+  }
+  build();
+}
+
+function openAddPopup() {
+  document.getElementById('addTitle').value = '';
+  document.getElementById('addNote').value = '';
+  updateDayOptions(document.getElementById('addSD'), 4, 1);
+  updateDayOptions(document.getElementById('addED'), 4, 1);
+  document.getElementById('addSM').onchange = function() {
+    if (this.value) updateDayOptions(document.getElementById('addSD'), parseInt(this.value), 1);
+  };
+  document.getElementById('addEM').onchange = function() {
+    updateDayOptions(document.getElementById('addED'), parseInt(this.value), 1);
+  };
+  document.getElementById('addOverlay').classList.add('open');
+}
+
+function closeAddOverlay() { document.getElementById('addOverlay').classList.remove('open'); }
+function closeAddPopup(e) { if (e.target === document.getElementById('addOverlay')) closeAddOverlay(); }
+
+function saveAddPopup() {
+  const title = document.getElementById('addTitle').value.trim();
+  if (!title) return;
+  const row = document.getElementById('addRow').value;
+  const smVal = document.getElementById('addSM').value;
+  const em = parseInt(document.getElementById('addEM').value);
+  const ed = parseInt(document.getElementById('addED').value);
+  const note = document.getElementById('addNote').value.trim();
+  const newId = 'custom_' + Date.now();
+  const newEv = { id: newId, row, em, ed, title, note };
+  if (smVal !== '') {
+    newEv.sm = parseInt(smVal);
+    newEv.sd = parseInt(document.getElementById('addSD').value);
+  }
+  customEvents[newId] = Object.assign({ _isNew: true }, newEv);
+  saveCustomEvents();
+  closeAddOverlay();
+  build();
+}
+
+let currentEditId = null;
+
+function deleteEvent() {
+  if (!currentEditId) return;
+  // For custom events: remove entirely. For default events: mark as deleted.
+  if (currentEditId.startsWith('custom_')) {
+    delete customEvents[currentEditId];
+  } else {
+    customEvents[currentEditId] = Object.assign(customEvents[currentEditId] || {}, { _deleted: true });
+  }
+  saveCustomEvents();
+  closeEditOverlay();
+  build();
+}
+
+function openEditPopup(ev, row) {
+  if (!editMode) return;
+  currentEditId = ev.id;
+  document.getElementById('editPopType').textContent = row.label;
+  document.getElementById('editPopType').style.color = row.color;
+  document.getElementById('editPopTitle').textContent = ev.title;
+
+  const months = ['5월','6월','7월','8월','9월','10월','11월','12월'];
+  const monthIdxs = [4,5,6,7,8,9,10,11];
+
+  // Start month/day
+  const smEl = document.getElementById('editSM');
+  const sdEl = document.getElementById('editSD');
+  const emEl = document.getElementById('editEM');
+  const edEl = document.getElementById('editED');
+
+  // Show/hide start fields
+  const startField = smEl.closest('.edit-field');
+  startField.style.display = ev.sm !== undefined ? 'block' : 'none';
+
+  [smEl, emEl].forEach((sel, isEnd) => {
+    sel.innerHTML = '';
+    monthIdxs.forEach((mi, i) => {
+      const opt = document.createElement('option');
+      opt.value = mi;
+      opt.textContent = months[i];
+      opt.selected = mi === (isEnd ? ev.em : ev.sm);
+      sel.appendChild(opt);
+    });
+    sel.onchange = () => updateDayOptions(isEnd ? edEl : sdEl, parseInt(sel.value), isEnd ? ev.ed : ev.sd);
+  });
+
+  updateDayOptions(sdEl, ev.sm || ev.em, ev.sd || ev.ed);
+  updateDayOptions(edEl, ev.em, ev.ed);
+
+  const delBtn = document.getElementById('editDelBtn');
+  if (delBtn) delBtn.style.display = 'block';
+  document.getElementById('editOverlay').classList.add('open');
+}
+
+function updateDayOptions(sel, month, selectedDay) {
+  const days = new Date(2025, month + 1, 0).getDate();
+  sel.innerHTML = '';
+  for (let d = 1; d <= days; d++) {
+    const opt = document.createElement('option');
+    opt.value = d;
+    opt.textContent = d + '일';
+    opt.selected = d === selectedDay;
+    sel.appendChild(opt);
+  }
+}
+
+function saveEditPopup() {
+  if (!currentEditId) return;
+  const ev = getEvents().find(e => e.id === currentEditId);
+  const update = {
+    em: parseInt(document.getElementById('editEM').value),
+    ed: parseInt(document.getElementById('editED').value),
+  };
+  if (ev.sm !== undefined) {
+    update.sm = parseInt(document.getElementById('editSM').value);
+    update.sd = parseInt(document.getElementById('editSD').value);
+  }
+  customEvents[currentEditId] = update;
+  saveCustomEvents();
+  closeEditOverlay();
+  build();
+}
+
+function closeEditOverlay() {
+  document.getElementById('editOverlay').classList.remove('open');
+  currentEditId = null;
+}
+
+function closeEditPopup(e) {
+  if (e.target === document.getElementById('editOverlay')) closeEditOverlay();
+}
+
 build();
 </script>
+<!-- Add Popup -->
+<div class="edit-overlay" id="addOverlay" onclick="closeAddPopup(event)">
+  <div class="edit-popup">
+    <button class="edit-popup-close" onclick="closeAddOverlay()">×</button>
+    <div style="font-family:'DM Mono',monospace;font-size:8px;letter-spacing:2px;color:#5A8A6A;text-transform:uppercase;margin-bottom:10px;">NEW EVENT</div>
+    <div class="edit-field">
+      <div class="edit-label">제목</div>
+      <input id="addTitle" style="font-family:'DM Mono',monospace;font-size:12px;padding:8px 10px;border-radius:6px;border:1px solid var(--border2);background:#111110;color:var(--text);outline:none;width:100%;" placeholder="예: GMAT 4차" />
+    </div>
+    <div class="edit-field">
+      <div class="edit-label">행 선택</div>
+      <select class="edit-select" id="addRow">
+        <option value="gmat">GMAT</option>
+        <option value="toefl">TOEFL</option>
+        <option value="far">FAR</option>
+        <option value="bar">BAR</option>
+        <option value="aud">AUD</option>
+        <option value="task">할 일</option>
+      </select>
+    </div>
+    <div class="edit-field">
+      <div class="edit-label">시작일 (없으면 비워도 됨)</div>
+      <div class="edit-row">
+        <select class="edit-select" id="addSM">
+          <option value="">-</option>
+          <option value="4">5월</option><option value="5">6월</option>
+          <option value="6">7월</option><option value="7">8월</option>
+          <option value="8">9월</option><option value="9">10월</option>
+          <option value="10">11월</option><option value="11">12월</option>
+        </select>
+        <select class="edit-select" id="addSD"></select>
+      </div>
+    </div>
+    <div class="edit-field">
+      <div class="edit-label">종료일 (시험/마감일)</div>
+      <div class="edit-row">
+        <select class="edit-select" id="addEM">
+          <option value="4">5월</option><option value="5">6월</option>
+          <option value="6">7월</option><option value="7">8월</option>
+          <option value="8">9월</option><option value="9">10월</option>
+          <option value="10">11월</option><option value="11">12월</option>
+        </select>
+        <select class="edit-select" id="addED"></select>
+      </div>
+    </div>
+    <div class="edit-field">
+      <div class="edit-label">메모 (선택)</div>
+      <input id="addNote" style="font-family:'DM Mono',monospace;font-size:11px;padding:8px 10px;border-radius:6px;border:1px solid var(--border2);background:#111110;color:var(--text);outline:none;width:100%;" placeholder="메모" />
+    </div>
+    <button class="edit-save-btn" onclick="saveAddPopup()">추가하기</button>
+  </div>
+</div>
+
+<!-- Edit Popup -->
+<div class="edit-overlay" id="editOverlay" onclick="closeEditPopup(event)">
+  <div class="edit-popup">
+    <button class="edit-popup-close" onclick="closeEditOverlay()">×</button>
+    <div class="edit-popup-type" id="editPopType"></div>
+    <div class="edit-popup-title" id="editPopTitle"></div>
+    <div class="edit-field">
+      <div class="edit-label">시작일</div>
+      <div class="edit-row">
+        <select class="edit-select" id="editSM"></select>
+        <select class="edit-select" id="editSD"></select>
+      </div>
+    </div>
+    <div class="edit-field" id="editEndField">
+      <div class="edit-label">종료일 (시험일)</div>
+      <div class="edit-row">
+        <select class="edit-select" id="editEM"></select>
+        <select class="edit-select" id="editED"></select>
+      </div>
+    </div>
+    <button class="edit-save-btn" onclick="saveEditPopup()">저장</button>
+    <button class="edit-del-btn" id="editDelBtn" onclick="deleteEvent()">삭제</button>
+  </div>
+</div>
+
 <a href="index.html" style="
   position: fixed; bottom: 24px; right: 24px;
   width: 48px; height: 48px; border-radius: 50%;
