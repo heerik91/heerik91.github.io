@@ -615,41 +615,39 @@ function loadBucket() {
 
 function loadGmat() {
   try {
+    // 기존 트래커 (gmat_tracker_v3) 데이터
+    const oldState = JSON.parse(localStorage.getItem('gmat_tracker_v3') || '{}');
+    const oldDays = oldState.days || {};
+    const oldAmTotal = Object.values(oldDays).filter(d => d && d.am).length;
+    const oldPmTotal = Object.values(oldDays).filter(d => d && d.pm).length;
+
+    // 새 트래커 (gmat_v4) 데이터
     const state = JSON.parse(localStorage.getItem('gmat_v4') || '{}');
     const todayKey = new Date().toISOString().slice(0,10);
     const checks = (state.checks||{})[todayKey] || {};
     const amDone = !!(checks['eco_1'] && checks['eco_2']);
     const pmDone = !!(checks['a_1'] || checks['b_1'] || checks['c_1']);
 
-    let streak = 0;
-    // gmat_v4: days는 checks에서 계산
     const checksAll = state.checks || {};
-    const days = {};
+    const newDays = {};
     Object.keys(checksAll).forEach(k => {
       const vals = Object.values(checksAll[k]).filter(Boolean);
-      if (vals.length > 0) days[k] = { am: true, pm: true };
+      if (vals.length > 0) newDays[k] = true;
     });
-    const now = new Date(); now.setHours(0,0,0,0);
-    for (let i = 0; i < 30; i++) {
-      const d = new Date(now); d.setDate(d.getDate()-i);
-      const k = d.toISOString().slice(0,10);
-      if (days[k] && (days[k].am || days[k].pm)) { streak++; }
-      else if (i === 0) { continue; }
-      else { break; }
-    }
+    const newAmTotal = Object.keys(newDays).length;
+    const newPmTotal = Object.keys(newDays).length;
 
-    // 총 완료 횟수
-    const amTotal = Object.values(days).filter(d => d.am).length;
-    const pmTotal = Object.values(days).filter(d => d.pm).length;
+    const amTotal = oldAmTotal + newAmTotal;
+    const pmTotal = oldPmTotal + newPmTotal;
 
     document.getElementById('gmatChecks').innerHTML =
       '<div class="tc-check-row"><div class="tc-dot'+(amDone?' done':'')+'"></div><span>아침 Economist</span></div>' +
-      '<div class="tc-check-row"><div class="tc-dot'+(pmDone?' done':'')+'"></div><span>저녁 7문제</span></div>';
-    document.getElementById('gmatStreak').textContent = '아침 '+amTotal+' · 저녁 '+pmTotal;
+      '<div class="tc-check-row"><div class="tc-dot'+(pmDone?' done':'')+'"></div><span>오늘 훈련</span></div>';
+    document.getElementById('gmatStreak').textContent = '아침 ' + amTotal + ' · 저녁 ' + pmTotal;
   } catch(e) {
     document.getElementById('gmatChecks').innerHTML =
       '<div class="tc-check-row"><div class="tc-dot"></div><span>아침 Economist</span></div>' +
-      '<div class="tc-check-row"><div class="tc-dot"></div><span>저녁 7문제</span></div>';
+      '<div class="tc-check-row"><div class="tc-dot"></div><span>오늘 훈련</span></div>';
     document.getElementById('gmatStreak').textContent = '아침 0 · 저녁 0';
   }
 }
