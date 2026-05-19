@@ -179,6 +179,7 @@ html, body { min-height: 100vh; background: var(--bg); color: var(--text); font-
   <button class="tab-btn active" onclick="switchTab(0)">00 대시보드</button>
   <button class="tab-btn" onclick="switchTab(1)">01 강의 체크</button>
   <button class="tab-btn" onclick="switchTab(2)">02 문제 기록</button>
+  <button class="tab-btn" onclick="switchTab(3)">03 공부 기록</button>
 </div>
 
 <div class="content">
@@ -225,7 +226,42 @@ html, body { min-height: 100vh; background: var(--bg); color: var(--text); font-
     <div class="divider"></div>
     <div class="log-list" id="logList"></div>
   </div>
+
+  <!-- TAB 3: 공부 기록 -->
+  <div class="tab-pane" id="tab-3">
+    <div class="add-study-form" id="addStudyForm">
+      <div class="form-row-3">
+        <div class="form-group" style="margin-bottom:0">
+          <div class="form-label">날짜</div>
+          <input class="study-select" type="date" id="studyDate" />
+        </div>
+        <div class="form-group" style="margin-bottom:0">
+          <div class="form-label">주제</div>
+          <select class="study-select" id="studyTopic"></select>
+        </div>
+        <div class="form-group" style="margin-bottom:0">
+          <div class="form-label">결과</div>
+          <select class="study-select" id="studyStatus">
+            <option value="o">O</option>
+            <option value="tri">△</option>
+            <option value="x">X</option>
+          </select>
+        </div>
+      </div>
+      <textarea class="study-memo-input" id="studyMemo" placeholder="뭘 했는지, 왜 못했는지 자유롭게..."></textarea>
+      <div style="display:flex;gap:8px;">
+        <button class="form-btn" style="flex:1" onclick="saveStudyLog()">저장</button>
+        <button class="form-btn" style="flex:none;padding:12px 16px;border-color:var(--border2);color:var(--text3);" onclick="closeStudyForm()">취소</button>
+      </div>
+    </div>
+
+    <div class="section-label">공부 기록</div>
+    <div class="divider"></div>
+    <div id="studyLogList"></div>
+  </div>
 </div>
+
+<div class="fab" id="fab" onclick="openStudyForm()">+</div>
 
 <script>
 const TOPICS = [
@@ -314,6 +350,9 @@ function switchTab(idx) {
   if (idx===0) renderDash();
   if (idx===1) renderTopics();
   if (idx===2) renderOutput();
+  if (idx===3) renderStudyLog();
+  const fab = document.getElementById('fab');
+  if (fab) fab.classList.toggle('visible', idx === 3);
 }
 
 // ── DASHBOARD ──
@@ -538,6 +577,90 @@ function renderOutput() {
     logEl.appendChild(item);
   });
 }
+
+// ── STUDY LOG ──
+let studyLogs = [];
+try { studyLogs = JSON.parse(localStorage.getItem('aicpa_study_log') || '[]'); } catch(e) {}
+function saveStudyLogs() { try { localStorage.setItem('aicpa_study_log', JSON.stringify(studyLogs)); } catch(e) {} }
+
+function buildTopicOptions() {
+  const sel = document.getElementById('studyTopic');
+  if (!sel) return;
+  sel.innerHTML = '';
+  TOPICS.forEach(t => {
+    const opt = document.createElement('option');
+    opt.value = t.id;
+    opt.textContent = t.title;
+    sel.appendChild(opt);
+  });
+}
+
+function openStudyForm() {
+  const form = document.getElementById('addStudyForm');
+  form.classList.add('open');
+  buildTopicOptions();
+  document.getElementById('studyDate').value = new Date().toISOString().slice(0,10);
+  document.getElementById('studyMemo').value = '';
+}
+
+function closeStudyForm() {
+  document.getElementById('addStudyForm').classList.remove('open');
+}
+
+function saveStudyLog() {
+  const date = document.getElementById('studyDate').value;
+  const topicId = document.getElementById('studyTopic').value;
+  const status = document.getElementById('studyStatus').value;
+  const memo = document.getElementById('studyMemo').value.trim();
+  if (!date || !topicId) return;
+  const topic = TOPICS.find(t => t.id === topicId);
+  studyLogs.unshift({
+    id: Date.now(),
+    date,
+    topicId,
+    topicTitle: topic ? topic.title : topicId,
+    status,
+    memo
+  });
+  saveStudyLogs();
+  closeStudyForm();
+  renderStudyLog();
+}
+
+function deleteStudyLog(id) {
+  studyLogs = studyLogs.filter(l => l.id !== id);
+  saveStudyLogs();
+  renderStudyLog();
+}
+
+function renderStudyLog() {
+  const el = document.getElementById('studyLogList');
+  if (!el) return;
+  if (!studyLogs.length) {
+    el.innerHTML = '<div class="empty-state">기록 없음 — + 버튼으로 추가해요</div>';
+    return;
+  }
+  el.innerHTML = '';
+  studyLogs.forEach(log => {
+    const statusMap = { o: 'O', tri: '△', x: 'X' };
+    const statusClass = { o: 'o', tri: 'tri', x: 'x' };
+    const item = document.createElement('div');
+    item.className = 'study-log-item';
+    let html = '<div class="study-log-header">' +
+      '<div class="study-date">' + log.date.slice(5).replace('-','/') + '</div>' +
+      '<div class="study-topic">' + log.topicTitle + '</div>' +
+      '<div class="study-status ' + statusClass[log.status] + '">' + statusMap[log.status] + '</div>' +
+      '<button class="study-del" onclick="deleteStudyLog(' + log.id + ')">×</button>' +
+      '</div>';
+    if (log.memo) {
+      html += '<div class="study-memo">' + log.memo + '</div>';
+    }
+    item.innerHTML = html;
+    el.appendChild(item);
+  });
+}
+
+// switchTab FAB handled in original function
 
 // Init
 renderDash();
